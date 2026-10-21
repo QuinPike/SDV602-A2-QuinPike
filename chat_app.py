@@ -22,7 +22,6 @@ def run():
     messages = ChatMessage.all()
     view.update_messages(format_messages(messages))
 
-
     while True:
         event, values = view.read(timeout=config.POLL_RATE)
 
