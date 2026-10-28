@@ -24,9 +24,10 @@ class LoginController:
                 self.view.un_hide()
 
             if event == "Login":
-                if self.user_repository.login(values["-USERNAME-"], values["-PASSWORD-"]):
+                user = self.user_repository.login(values["-USERNAME-"], values["-PASSWORD-"])
+                if user:
                     self.view.show_message("Login successful")
                     self.view.close()
-                    return
+                    return user
 
                 self.view.show_error("Login failed")

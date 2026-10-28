@@ -15,7 +15,7 @@ class MessageRepository:
             self.timestamp = timestamp
 
 
-        return self.db.instert_one(config.CHAT_MESSAGES_COLLECTION, {
+        return self.db.insert_one(config.CHAT_MESSAGES_COLLECTION, {
             "username": username,
             "text": text,
             "timestamp": timestamp
