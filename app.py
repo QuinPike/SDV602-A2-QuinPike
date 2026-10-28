@@ -1,8 +1,11 @@
 from data.user_repository import UserRepository
 from data.message_repository import MessageRepository
+from model.user import User
 
 from controller.login_controller import LoginController
 from controller.chat_controller import ChatController
+
+HEADLESS = True
 
 class App:
     def __init__(self):
@@ -10,13 +13,20 @@ class App:
         self.message_repository = MessageRepository()
 
     def run(self):
-        user = LoginController(self.user_repository).run()
+        login_controller = LoginController(self.user_repository)
 
-        if user:
-            ChatController(user.name, self.message_repository).run()
-            pass
+        if HEADLESS:
+            user = login_controller.login('Bob', 'Password')
+            if type(user) == User:
+                print('success')
+    
         else:
-            print(user)
+            user = login_controller.run()
+            if user:
+                ChatController(user.name, self.message_repository).run()
+                pass
+            else:
+                print(user)
 
 if __name__ == "__main__":
     App().run()
