@@ -5,7 +5,7 @@ from model.user import User
 from controller.login_controller import LoginController
 from controller.chat_controller import ChatController
 
-HEADLESS = True
+HEADLESS = False
 
 class App:
     def __init__(self):
