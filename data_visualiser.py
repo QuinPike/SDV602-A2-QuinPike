@@ -38,33 +38,31 @@ class DataVisualiser:
 
     def plot_line_chart(self, x_key, y_key, title, series_key=None):
         if not self.data:
-            print("No data to plot!")
-            return
+            print('No data to plot!')
+            return None
 
         series = {}
         for row in self.data:
             series.setdefault(row.get(series_key), []).append(row)
 
-        plt.figure(figsize=(8, 6))
-
+        # Explicitly create and track the figure object
+        fig, ax = plt.subplots(figsize=(8, 6))
 
         for name, rows in series.items():
             rows.sort(key=itemgetter(x_key))
-
             x_values = []
             y_values = []
+        for row in rows:
+            x_values.append(row[x_key])
+            y_values.append(float(row[y_key]))
 
-            for row in rows:
-                x_values.append(row[x_key])
-                y_values.append(float(row[y_key]))
-
-            plt.plot(x_values, y_values, marker='o', label=name)
+        ax.plot(x_values, y_values, marker='o', label=name)
 
         if series_key:
-            plt.legend()
+            ax.legend()
 
-        plt.xlabel(x_key)
-        plt.ylabel(y_key)
-        plt.title(title)
+        ax.set_xlabel(x_key)
+        ax.set_ylabel(y_key)
+        ax.set_title(title)
 
-        plt.show()
+        return fig  # Return the figure object to be embedded

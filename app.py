@@ -31,7 +31,7 @@ class App:
             ## else:
             ##    print(user)
 
-            test = home_controller.run()
+            home = home_controller.run()
 
 if __name__ == "__main__":
     App().run()
