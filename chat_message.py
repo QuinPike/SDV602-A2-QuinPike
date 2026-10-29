@@ -1,4 +1,4 @@
-from database_manager import DatabaseManager
+from data.database_manager import DatabaseManager
 from datetime import datetime
 import config
 

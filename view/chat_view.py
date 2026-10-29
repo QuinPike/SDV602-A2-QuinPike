@@ -1,6 +1,5 @@
 import FreeSimpleGUI as sg
 
-
 class ChatView:
 
     def __init__(self):
@@ -16,7 +15,8 @@ class ChatView:
         self.window = sg.Window("Live Chat", self.layout, finalize=True)
 
     def update_messages(self, text):
-        self.window['-OUTPUT-'].update(text)
+        formatted = self.format_messages(text)
+        self.window['-OUTPUT-'].update(formatted)
 
     def clear_input(self):
         self.window['-CHAT-'].update('')
@@ -32,3 +32,11 @@ class ChatView:
 
     def show_message(self, message):
         sg.popup(message)
+
+    def format_messages(self, messages=[]):
+        if messages:
+            output = ""
+            for message in messages:
+                output += f"{message.username}: {message.text}\n"
+
+            return output

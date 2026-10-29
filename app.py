@@ -1,12 +1,32 @@
-from data_visualiser import DataVisualiser
+from data.user_repository import UserRepository
+from data.message_repository import MessageRepository
+from model.user import User
+
+from controller.login_controller import LoginController
+from controller.chat_controller import ChatController
+
+HEADLESS = False
+
+class App:
+    def __init__(self):
+        self.user_repository = UserRepository()
+        self.message_repository = MessageRepository()
+
+    def run(self):
+        login_controller = LoginController(self.user_repository)
+
+        if HEADLESS:
+            user = login_controller.login('Bob', 'Password')
+            if type(user) == User:
+                print('success')
+    
+        else:
+            user = login_controller.run()
+            if user:
+                ChatController(user.name, self.message_repository).run()
+                pass
+            else:
+                print(user)
 
 if __name__ == "__main__":
-    data_visualiser = DataVisualiser()
-
-    data_visualiser.load_data("data/bd-natural-increase-2010-2014.csv")
-    data_visualiser.append_data("data/bd-natural-increase-2015-2019.csv")
-    data_visualiser.append_data("data/bd-natural-increase-2020-2022.csv")
-
-
-    data_visualiser.plot_line_chart(
-        "Period", "Count", "Population Natural Increase", "Births_Deaths_or_Natural_Increase")
+    App().run()
