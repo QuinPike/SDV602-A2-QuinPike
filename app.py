@@ -5,6 +5,8 @@ from model.user import User
 from controller.login_controller import LoginController
 from controller.chat_controller import ChatController
 
+from controller.home_controller import HomeController
+
 HEADLESS = False
 
 class App:
@@ -14,19 +16,22 @@ class App:
 
     def run(self):
         login_controller = LoginController(self.user_repository)
+        home_controller = HomeController()
 
         if HEADLESS:
             user = login_controller.login('Bob', 'Password')
             if type(user) == User:
                 print('success')
-    
         else:
-            user = login_controller.run()
-            if user:
-                ChatController(user.name, self.message_repository).run()
-                pass
-            else:
-                print(user)
+
+            ## user = login_controller.run()
+            ## if user:
+            ##    ChatController(user.name, self.message_repository).run()
+            ##    pass
+            ## else:
+            ##    print(user)
+
+            test = home_controller.run()
 
 if __name__ == "__main__":
     App().run()
