@@ -1,4 +1,3 @@
-import config
 from view.home_view import HomeView
 import FreeSimpleGUI as sg
 from controller.chat_controller import ChatController
