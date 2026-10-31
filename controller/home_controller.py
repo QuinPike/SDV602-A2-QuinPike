@@ -2,7 +2,7 @@ from view.home_view import HomeView
 import FreeSimpleGUI as sg
 from controller.chat_controller import ChatController
 from controller.login_controller import LoginController
-from data_visualiser import DataVisualiser
+from model.data_visualiser import DataVisualiser
 from data.user_repository import UserRepository
 from data.message_repository import MessageRepository
 
