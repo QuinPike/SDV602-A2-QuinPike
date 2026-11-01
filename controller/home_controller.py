@@ -5,6 +5,7 @@ from controller.login_controller import LoginController
 from model.data_visualiser import DataVisualiser
 from data.user_repository import UserRepository
 from data.message_repository import MessageRepository
+from controller.local_controller import LocalController
 
 # Import the Tkinter canvas bridge from matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -31,27 +32,10 @@ class HomeController:
                 return
 
             if event == "Local":
-                visualiser = DataVisualiser()
-                
-                visualiser.load_data('data/bd-natural-increase-2010-2014.csv') 
-                
-                fig = visualiser.plot_line_chart(
-                    x_key='Period',
-                    y_key='Count',
-                    title='Natural Increase Trends', 
-                    series_key='Region'
-                )
-                
-                if fig:
-                    if self.figure_agg:
-                        self.figure_agg.get_tk_widget().forget()
-        
-                    canvas_element = self.view.window['-CANVAS-'].TKCanvas
-                    
-                    self.figure_agg = self._draw_figure(canvas_element, fig)
-                else:
-                    sg.popup_error('Failed to load data or generate chart.')
-
+                self.view.hide()
+                LocalController().run()
+                self.view.un_hide()
+                 
             if event == "Remote":
                 user = LoginController(self.user_repository).run()
                 if user:
