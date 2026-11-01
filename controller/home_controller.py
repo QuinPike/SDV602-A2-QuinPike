@@ -17,13 +17,6 @@ class HomeController:
         self.user_repository = UserRepository()
         self.message_repository = MessageRepository()
 
-    def _draw_figure(self, canvas, figure):
-        """Bridges a Matplotlib figure onto a FreeSimpleGUI canvas widget."""
-        figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
-        figure_canvas_agg.draw()
-        figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
-        return figure_canvas_agg
-
     def run(self):
         while True: 
             event, values = self.view.read()
@@ -35,7 +28,7 @@ class HomeController:
                 self.view.hide()
                 LocalController().run()
                 self.view.un_hide()
-                 
+
             if event == "Remote":
                 user = LoginController(self.user_repository).run()
                 if user:

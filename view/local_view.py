@@ -8,11 +8,11 @@ class LocalView:
         self.layout = [
             [sg.Text('The Data Dashboard', font=('Helvetica', 16, 'bold'))],
             [sg.Canvas(size=(800, 600), key='-CANVAS-')],  # Reserve space for the chart [1]
-            [sg.Button('Load Data & Plot'), sg.Button('Exit')]
+            [sg.Button('Load Data & Plot'), sg.Button('Exit')],
+            [sg.Button("Generate", bind_return_key=True)]
         ]
 
-        self.window = sg.Window("Local Mode", self.layout, size=(800,600))
-
+        self.window = sg.Window("Local Mode", self.layout, size=(1000,800))
 
     def read(self):
         return self.window.read()
