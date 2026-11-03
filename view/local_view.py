@@ -7,12 +7,24 @@ class LocalView:
 
         self.layout = [
             [sg.Text('The Data Dashboard', font=('Helvetica', 16, 'bold'))],
-            [sg.Canvas(size=(800, 600), key='-CANVAS-')],  # Reserve space for the chart [1]
-            [sg.Button('Load Data & Plot'), sg.Button('Exit')],
-            [sg.Button("Generate", bind_return_key=True)]
+
+            [sg.Text("CSV File:"), sg.Input(key="-FILE-", disabled=True),
+            sg.FileBrowse(file_types=(("CSV Files", "*.csv"),))],
+
+            [sg.Text("X Axis:"), sg.Combo([], key="-X-", size=(20, 1))],
+            [sg.Text("Y Axis:"), sg.Combo([], key="-Y-", size=(20, 1))],
+
+            [sg.Text("Chart Title:"), sg.Input(key="-TITLE-")],
+
+            [sg.Canvas(size=(600, 400), key="-CANVAS-")],
+
+            [sg.Button("Load Data"), sg.Button("Generate"),
+            sg.Button("Exit")]
+            
         ]
 
-        self.window = sg.Window("Local Mode", self.layout, size=(1000,800))
+
+        self.window = sg.Window("Local Mode", self.layout, size=(1000, 800))
 
     def read(self):
         return self.window.read()

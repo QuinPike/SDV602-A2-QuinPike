@@ -43,20 +43,23 @@ class DataVisualiser:
 
         series = {}
         for row in self.data:
-            series.setdefault(row.get(series_key), []).append(row)
+            name = row.get(series_key) if series_key else "Data"
+            series.setdefault(name, []).append(row)
 
         # Explicitly create and track the figure object
         fig, ax = plt.subplots(figsize=(8, 6))
 
         for name, rows in series.items():
             rows.sort(key=itemgetter(x_key))
+
             x_values = []
             y_values = []
-        for row in rows:
-            x_values.append(row[x_key])
-            y_values.append(float(row[y_key]))
 
-        ax.plot(x_values, y_values, marker='o', label=name)
+            for row in rows:
+                x_values.append(row[x_key])
+                y_values.append(float(row[y_key]))
+
+            ax.plot(x_values, y_values, marker='o', label=name)
 
         if series_key:
             ax.legend()
@@ -66,3 +69,10 @@ class DataVisualiser:
         ax.set_title(title)
 
         return fig  # Return the figure object to be embedded
+
+    # Get CSV Columns
+    def get_columns(self):
+        if not self.data:
+            return []
+
+        return list(self.data[0].keys())

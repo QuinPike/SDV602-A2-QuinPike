@@ -19,12 +19,73 @@ class LocalController:
         while True:
             event, values = self.view.read()
 
-            if event in (sg.WIN_CLOSED, "Cancel"):
+            if event in (sg.WIN_CLOSED, "Exit"):
                 self.view.close()
                 return
 
             if event == "Generate":
-                # Your chart-generation logic goes here.
                 visualiser = DataVisualiser()
-                print (visualiser)
-                pass
+
+                # 1. Retrieve user inputs
+
+                columns = visualiser.get_columns()
+
+                self.view.window["-X-"].update(values=columns)
+                self.view.window["-Y-"].update(values=columns)
+                file_path = values["-FILE-"]
+                x_key = values["-X-"]
+                y_key = values["-Y-"]
+                title = values["-TITLE-"]
+
+                # 2. Validate inputs
+                if not file_path:
+                    sg.popup_error("Please select a file.")
+                    continue
+
+                if not x_key or not y_key:
+                    sg.popup_error("Please select both axes.")
+                    continue
+
+                # 3. Load the selected file
+                visualiser.load_data(file_path)
+
+                # 4. Generate the chart
+                fig = visualiser.plot_line_chart(
+                    x_key=x_key,
+                    y_key=y_key,
+                    title=title
+                )
+
+                # 5. Display the chart
+                if fig is not None:
+
+                    if self.figure_agg is not None:
+                        self.figure_agg.get_tk_widget().destroy()
+
+                    canvas_element = self.view.window["-CANVAS-"].TKCanvas
+
+                    self.figure_agg = self._draw_figure(canvas_element, fig)
+
+                else:
+                    sg.popup_error("Failed to generate chart.")
+
+    
+            if event == "Load Data":
+                file_path = values["-FILE-"]
+
+                if not file_path:
+                    sg.popup_error("Please select a CSV file.")
+                    continue
+
+                visualiser = DataVisualiser()
+                visualiser.load_data(file_path)
+
+                columns = visualiser.get_columns()
+
+                if not columns:
+                    sg.popup_error("No columns found in CSV.")
+                    continue
+
+                self.view.window["-X-"].update(values=columns)
+                self.view.window["-Y-"].update(values=columns)
+
