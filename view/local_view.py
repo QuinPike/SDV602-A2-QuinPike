@@ -18,7 +18,7 @@ class LocalView:
 
             [sg.Canvas(size=(600, 400), key="-CANVAS-")],
 
-            [sg.Button("Load Data"), sg.Button("Generate"),
+            [sg.Button("Load Data"), sg.Button("Generate"), sg.Button('Save Chart'),
             sg.Button("Exit")]   
         ]
 

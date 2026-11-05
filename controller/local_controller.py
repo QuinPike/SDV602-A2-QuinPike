@@ -16,6 +16,7 @@ class LocalController:
         return figure_canvas_agg
 
     def run(self):
+        generated = False
         while True:
             event, values = self.view.read()
 
@@ -59,14 +60,14 @@ class LocalController:
 
                     # 5. Display the chart
                     if fig is not None:
-
+                        generated = True
                         if self.figure_agg is not None:
                             self.figure_agg.get_tk_widget().destroy()
 
                         canvas_element = self.view.window["-CANVAS-"].TKCanvas
 
                         self.figure_agg = self._draw_figure(canvas_element, fig)
-
+                        
                     else:
                         sg.popup_error("Failed to generate chart.")
 
@@ -93,3 +94,9 @@ class LocalController:
                 self.view.window["-X-"].update(values=columns)
                 self.view.window["-Y-"].update(values=columns)
 
+            if event == 'Save Chart':
+                if generated:
+                    fig.savefig(f'{title}.png')
+                    sg.popup('Chart saved')
+                else: 
+                    sg.popup_error("There's no chart!")

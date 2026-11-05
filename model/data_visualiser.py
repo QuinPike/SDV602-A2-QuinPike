@@ -76,3 +76,7 @@ class DataVisualiser:
             return []
 
         return list(self.data[0].keys())
+
+    def save_figure(self):
+        message = "Error"
+        return message
