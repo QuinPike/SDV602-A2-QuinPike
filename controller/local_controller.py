@@ -49,27 +49,31 @@ class LocalController:
                 # 3. Load the selected file
                 visualiser.load_data(file_path)
 
-                # 4. Generate the chart
-                fig = visualiser.plot_line_chart(
-                    x_key=x_key,
-                    y_key=y_key,
-                    title=title
-                )
+                try:
+                    # 4. Generate the chart
+                    fig = visualiser.plot_line_chart(
+                        x_key=x_key,
+                        y_key=y_key,
+                        title=title
+                    )
 
-                # 5. Display the chart
-                if fig is not None:
+                    # 5. Display the chart
+                    if fig is not None:
 
-                    if self.figure_agg is not None:
-                        self.figure_agg.get_tk_widget().destroy()
+                        if self.figure_agg is not None:
+                            self.figure_agg.get_tk_widget().destroy()
 
-                    canvas_element = self.view.window["-CANVAS-"].TKCanvas
+                        canvas_element = self.view.window["-CANVAS-"].TKCanvas
 
-                    self.figure_agg = self._draw_figure(canvas_element, fig)
+                        self.figure_agg = self._draw_figure(canvas_element, fig)
 
-                else:
-                    sg.popup_error("Failed to generate chart.")
+                    else:
+                        sg.popup_error("Failed to generate chart.")
 
-    
+                except ValueError as e:
+                    sg.popup_error(f"Unable to generate chart with selected values: {e}")
+                    pass
+
             if event == "Load Data":
                 file_path = values["-FILE-"]
 

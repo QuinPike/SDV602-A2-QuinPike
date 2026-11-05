@@ -27,8 +27,10 @@ class HomeController:
                 self.view.un_hide()
 
             if event == "Remote":
+                self.view.hide()
                 user = LoginController(self.user_repository).run()
                 if user:
                     RemoteController(user.name, self.message_repository).run()
                 else:
                     print(user)
+                self.view.un_hide()

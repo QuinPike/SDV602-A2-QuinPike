@@ -8,7 +8,6 @@ class HomeView:
             [sg.Text('Select a Mode', font=('Helvetica', 16, 'bold'))],
             [sg.Button("Local", bind_return_key=True)],
             [sg.Button('Remote', bind_return_key=True)],
-
         ]
  
         self.window = sg.Window("Home", self.layout, size=(400, 200))
