@@ -2,10 +2,9 @@ from view.home_view import HomeView
 import FreeSimpleGUI as sg
 from controller.remote_controller import RemoteController
 from controller.login_controller import LoginController
-from model.data_visualiser import DataVisualiser
 from data.user_repository import UserRepository
 from data.message_repository import MessageRepository
-from controller.des_controller import DesController
+from controller.local_controller import LocalController
 
 class HomeController:
     def __init__(self):
@@ -23,7 +22,7 @@ class HomeController:
 
             if event == "Local":
                 self.view.hide()
-                DesController().run()
+                LocalController().run()
                 self.view.un_hide()
 
             if event == "Remote":

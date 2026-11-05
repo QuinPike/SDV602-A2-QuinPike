@@ -3,7 +3,7 @@ import FreeSimpleGUI as sg
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from model.data_visualiser import DataVisualiser
 
-class DesController:
+class LocalController:
     def __init__(self):
         self.view = LocalView()
         self.figure_agg = None
