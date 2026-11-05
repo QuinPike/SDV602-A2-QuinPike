@@ -12,7 +12,7 @@ class RemoteView:
             [sg.Button('Send', bind_return_key=True)]
         ]
 
-        self.window = sg.Window("Live Chat", self.layout, finalize=True)
+        self.window = sg.Window("Remote Mode", self.layout, finalize=True)
 
     def update_messages(self, text):
         formatted = self.format_messages(text)

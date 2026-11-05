@@ -5,7 +5,7 @@ from controller.login_controller import LoginController
 from model.data_visualiser import DataVisualiser
 from data.user_repository import UserRepository
 from data.message_repository import MessageRepository
-from controller.local_controller import LocalController
+from controller.des_controller import DesController
 
 class HomeController:
     def __init__(self):
@@ -23,7 +23,7 @@ class HomeController:
 
             if event == "Local":
                 self.view.hide()
-                LocalController().run()
+                DesController().run()
                 self.view.un_hide()
 
             if event == "Remote":
