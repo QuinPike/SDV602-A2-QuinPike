@@ -7,9 +7,6 @@ from data.user_repository import UserRepository
 from data.message_repository import MessageRepository
 from controller.local_controller import LocalController
 
-# Import the Tkinter canvas bridge from matplotlib
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
 class HomeController:
     def __init__(self):
         self.view = HomeView()

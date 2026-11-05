@@ -5,14 +5,13 @@ class HomeView:
         sg.theme("DarkBlue")
 
         self.layout = [
+            [sg.Text('Select a Mode', font=('Helvetica', 16, 'bold'))],
             [sg.Button("Local", bind_return_key=True)],
             [sg.Button('Remote', bind_return_key=True)],
-            [sg.Text('My Data Dashboard', font=('Helvetica', 16, 'bold'))],
-            [sg.Canvas(size=(800, 600), key='-CANVAS-')],  # Reserve space for the chart [1]
-            [sg.Button('Load Data & Plot'), sg.Button('Exit')]
+
         ]
  
-        self.window = sg.Window("Home", self.layout, size=(800, 600))
+        self.window = sg.Window("Home", self.layout, size=(400, 200))
 
     def read(self):
         return self.window.read()
