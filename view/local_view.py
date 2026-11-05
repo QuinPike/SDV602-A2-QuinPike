@@ -19,10 +19,8 @@ class LocalView:
             [sg.Canvas(size=(600, 400), key="-CANVAS-")],
 
             [sg.Button("Load Data"), sg.Button("Generate"),
-            sg.Button("Exit")]
-            
+            sg.Button("Exit")]   
         ]
-
 
         self.window = sg.Window("Local Mode", self.layout, size=(1000, 800))
 

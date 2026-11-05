@@ -1,6 +1,6 @@
 from view.home_view import HomeView
 import FreeSimpleGUI as sg
-from controller.chat_controller import ChatController
+from controller.remote_controller import RemoteController
 from controller.login_controller import LoginController
 from model.data_visualiser import DataVisualiser
 from data.user_repository import UserRepository
@@ -32,6 +32,6 @@ class HomeController:
             if event == "Remote":
                 user = LoginController(self.user_repository).run()
                 if user:
-                    ChatController(user.name, self.message_repository).run()
+                    RemoteController(user.name, self.message_repository).run()
                 else:
                     print(user)

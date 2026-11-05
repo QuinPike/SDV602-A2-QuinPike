@@ -1,5 +1,5 @@
 import FreeSimpleGUI as fsg
-from view.chat_view import ChatView
+from view.remote_view import ChatView
 from model.chat_message import ChatMessage
 import config
 

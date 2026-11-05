@@ -3,7 +3,7 @@ from data.message_repository import MessageRepository
 from model.user import User
 
 from controller.login_controller import LoginController
-from controller.chat_controller import ChatController
+from controller.remote_controller import RemoteController
 
 from controller.home_controller import HomeController
 

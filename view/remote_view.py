@@ -1,6 +1,6 @@
 import FreeSimpleGUI as sg
 
-class ChatView:
+class RemoteView:
 
     def __init__(self):
         sg.theme("DarkBlue")
