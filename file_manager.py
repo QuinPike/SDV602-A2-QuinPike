@@ -17,7 +17,7 @@ class FileManager:
     def read_file(self, file_name):
         """Reads and returns all lines from a file."""
         try:
-            with open(file_name, "r") as file:
+            with open(file_name, mode='r', newline='', encoding='utf-8') as file:
                 return file.readlines()
         except FileNotFoundError:
             print("File not found.")
@@ -58,3 +58,26 @@ class FileManager:
         except Exception as e:
             print(f"Could not read file: {e}")
             return data
+
+    def save_csv(self, file_name, data):
+        """Writes a list of dictionaries to a CSV file."""
+
+        if not data:
+            print("No data to save.")
+            return False
+
+        try:
+            with open(file_name, mode="w", newline="", encoding="utf-8") as file:
+                writer = csv.DictWriter(
+                    file,
+                    fieldnames=data[0].keys()
+                )
+
+                writer.writeheader()
+                writer.writerows(data)
+
+            return True
+
+        except (OSError, csv.Error) as e:
+            print(f"Could not save CSV: {e}")
+            return False

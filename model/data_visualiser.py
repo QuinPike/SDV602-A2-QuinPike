@@ -20,21 +20,25 @@ class DataVisualiser:
 
     def load_data(self, file_name):
         data = self.__load_csv(file_name)
+
         if not data:
-            return
+            return False
 
         self.data = data
+        return True
 
     def append_data(self, file_name):
         new = self.__load_csv(file_name)
+
         if not new or not self.data:
-            return
+            return False
 
         if self.data[0].keys() != new[0].keys():
             print("Data doesn't match")
-            return
+            return False
 
         self.data.extend(new)
+        return True
 
     def plot_line_chart(self, x_key, y_key, title, series_key=None):
         if not self.data:
@@ -77,6 +81,16 @@ class DataVisualiser:
 
         return list(self.data[0].keys())
 
-    def save_figure(self):
-        message = "Error"
-        return message
+    # Get all Records
+    def get_data(self):
+        return self.data
+
+    def remove_data(self, index):
+        if 0 <= index < len(self.data):
+            self.data.pop(index)
+
+    def clear_data(self):
+        self.data = []
+
+    def save_data(self, file_name):
+        return self.file_manager.save_csv(file_name, self.data)

@@ -16,9 +16,7 @@ class LoginView:
             [sg.Button("Login", bind_return_key=True), sg.Button("Cancel")],
             [sg.Text("Don't have an account? "), sg.Text("Register", text_color="blue", enable_events=True)],
         ]
-
         self.window = sg.Window("Login", self.layout)
-
 
     def read(self):
         return self.window.read()
@@ -37,3 +35,4 @@ class LoginView:
 
     def show_message(self, message):
         sg.popup(message)
+    
