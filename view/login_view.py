@@ -35,4 +35,3 @@ class LoginView:
 
     def show_message(self, message):
         sg.popup(message)
-    

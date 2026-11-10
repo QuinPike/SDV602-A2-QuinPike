@@ -36,6 +36,13 @@ class LocalView:
                 )
             ],
 
+            # Chart actions
+            [
+                sg.Button("Generate"),
+                sg.Button("Save Chart"),
+                sg.Button("Exit")
+            ],
+
             # Chart configuration
             [sg.Text("Chart Configuration:",
                      font=('Helvetica', 12, 'bold'))],
@@ -47,29 +54,25 @@ class LocalView:
                 sg.Text("Y Axis:"),
                 sg.Combo([], key="-Y-", size=(20, 1))
             ],
+            # Chart preview
+            [sg.Text("Chart Preview:")],
+            [sg.Canvas(size=(150, 75), key="-CANVAS-")],
+
+
 
             [
                 sg.Text("Chart Title:"),
                 sg.Input(key="-TITLE-", size=(40, 1))
-            ],
-
-            # Chart preview
-            [sg.Text("Chart Preview:")],
-            [sg.Canvas(size=(600, 400), key="-CANVAS-")],
-
-            # Chart actions
-            [
-                sg.Button("Generate"),
-                sg.Button("Save Chart"),
-                sg.Button("Exit")
             ]
+
         ]
 
         self.window = sg.Window(
             "Local Mode",
             self.layout,
-            size=(1000, 900),
-            resizable=True
+            size=(1300, 1000),
+            resizable=True,
+            finalize=True
         )
 
     def read(self):
@@ -86,10 +89,21 @@ class LocalView:
 
     def update_table(self, columns, data):
 
+        container = self.window["-TABLE-CONTAINER-"].Widget
+
+
+        for widget in container.winfo_children():
+            widget.destroy()
+
+        if not columns:
+            return
+
+        self.table_count = getattr(self, "table_count", 0) + 1
+
         new_table = sg.Table(
             values=data,
             headings=columns,
-            key="-DATA-TABLE-",
+            key=f"-DATA-TABLE-{self.table_count}-",
             enable_events=True,
             select_mode=sg.TABLE_SELECT_MODE_BROWSE,
             auto_size_columns=True,
@@ -101,3 +115,5 @@ class LocalView:
             self.window["-TABLE-CONTAINER-"],
             [[new_table]]
         )
+
+        self.current_table_key = f"-DATA-TABLE-{self.table_count}-"

@@ -123,7 +123,7 @@ class LocalController:
                     sg.popup_error("Unable to add data. Check that the CSV columnns match.")
 
             if event == "Remove Selected":
-                selected = values["-DATA-TABLE-"]
+                selected = values.get(self.view.current_table_key, [])
 
                 if not selected:
                     sg.popup_error("Please select a row.")
