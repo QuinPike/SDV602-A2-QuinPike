@@ -1,6 +1,7 @@
 from view.local_view import LocalView
 import FreeSimpleGUI as sg
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 from model.data_visualiser import DataVisualiser
 
 class LocalController:
@@ -10,15 +11,44 @@ class LocalController:
         self.figure_agg = None
         self.generated = False
         self.title = ""
+        self.toolbar = None
 
     def _draw_figure(self, canvas, figure):
         """Bridges a Matplotlib figure onto a FreeSimpleGUI canvas widget."""
+
+        # Create the Matplotlib canvas
         figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
         figure_canvas_agg.draw()
-        figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+
+        figure_canvas_agg.get_tk_widget().pack(
+            side='top',
+            fill='both',
+            expand=1
+        )
+
+        # Remove the previous toolbar
+        toolbar_canvas = self.view.window["-TOOLBAR-"].TKCanvas
+
+        for widget in toolbar_canvas.winfo_children():
+            widget.destroy()
+
+        # Create the navigation toolbar
+        self.toolbar = NavigationToolbar2Tk(
+            figure_canvas_agg,
+            toolbar_canvas,
+            pack_toolbar=False
+        )
+
+        self.toolbar.update()
+        self.toolbar.pack(side='top', fill='x')
+
         return figure_canvas_agg
 
     def run(self):
+
+        ## Run the placeholder chart to make it not look ugly
+        self.placeholder_chart()
+
         while True:
             event, values = self.view.read()
 
@@ -31,6 +61,7 @@ class LocalController:
                 x_key = values["-X-"]
                 y_key = values["-Y-"]
                 title = values["-TITLE-"]
+                description = values["-DESCRIPTION-"]
 
                 if not self.visualiser.data:
                     sg.popup_error("Please load data first.")
@@ -60,6 +91,13 @@ class LocalController:
 
                         self.generated = True
                         self.title = title
+                        fig.text(
+                            0.5, 0.02,
+                            description,
+                            ha="center",
+                            fontsize=9,
+                            wrap=True
+                        )
 
                     else:
                         sg.popup_error("Failed to generate chart.")
@@ -177,4 +215,28 @@ class LocalController:
             self.figure_agg.get_tk_widget().destroy()
             self.figure_agg = None
 
+        if self.toolbar is not None:
+            self.toolbar.destroy()
+            self.toolbar = None
+
         self.generated = False
+        self.placeholder_chart()
+
+    def placeholder_chart(self):
+        fig, ax = plt.subplots(figsize=(10, 6))
+
+        ax.set_title("The Data Explorer")
+        ax.text(
+            0.5, 0.5,
+            "The Chart is Empty. Enter files and load data to start!",
+            ha="center",
+            va="center",
+            transform=ax.transAxes
+        )
+
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+        canvas_element = self.view.window["-CANVAS-"].TKCanvas
+
+        self.figure_agg = self._draw_figure(canvas_element, fig)

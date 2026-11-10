@@ -43,6 +43,8 @@ class LocalView:
                 sg.Button("Exit")
             ],
 
+
+
             # Chart configuration
             [sg.Text("Chart Configuration:",
                      font=('Helvetica', 12, 'bold'))],
@@ -54,16 +56,25 @@ class LocalView:
                 sg.Text("Y Axis:"),
                 sg.Combo([], key="-Y-", size=(20, 1))
             ],
-            # Chart preview
-            [sg.Text("Chart Preview:")],
-            [sg.Canvas(size=(150, 75), key="-CANVAS-")],
-
-
 
             [
                 sg.Text("Chart Title:"),
                 sg.Input(key="-TITLE-", size=(40, 1))
-            ]
+            ],
+
+            [sg.Text("Chart Description:")],
+            [
+                sg.Multiline(
+                    key="-DESCRIPTION-",
+                    size=(60, 4),
+                    expand_x=True
+                )
+            ],
+
+            # Chart preview
+            [sg.Text("Chart Preview:")],
+            [sg.Canvas(key="-TOOLBAR-")],
+            [sg.Canvas(size=(900, 550), key="-CANVAS-")]
 
         ]
 
