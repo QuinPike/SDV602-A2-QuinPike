@@ -1,13 +1,13 @@
-from view.chat_view import ChatView
+from view.remote_view import RemoteView
 import config
 import FreeSimpleGUI as sg
 
-class ChatController:
+class RemoteController:
     def __init__(self, username, message_repository):
         self.message_repository = message_repository
         self.username = username
 
-        self.view = ChatView()
+        self.view = RemoteView()
 
 
     def run(self):

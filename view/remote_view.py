@@ -1,6 +1,6 @@
 import FreeSimpleGUI as sg
 
-class ChatView:
+class RemoteView:
 
     def __init__(self):
         sg.theme("DarkBlue")
@@ -12,7 +12,7 @@ class ChatView:
             [sg.Button('Send', bind_return_key=True)]
         ]
 
-        self.window = sg.Window("Live Chat", self.layout, finalize=True)
+        self.window = sg.Window("Remote Mode", self.layout, finalize=True)
 
     def update_messages(self, text):
         formatted = self.format_messages(text)
