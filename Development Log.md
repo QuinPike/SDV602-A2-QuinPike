@@ -10,5 +10,12 @@ I created the chat\_app and chat\_message files for the project. Next will be ac
 
 ## 21 October Onwards - MVC \& Login Begin 
 
+## Local Mode Development
 
+### Local View - After Implementation 
+<img width="1914" height="998" alt="image" src="https://github.com/user-attachments/assets/26737ec8-f747-4f62-8009-2e2707b2aa73" />
+
+
+
+### Local Controller
 
