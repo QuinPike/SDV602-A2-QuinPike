@@ -36,18 +36,15 @@ class LocalView:
                 )
             ],
 
-            # Chart actions
-            [
-                sg.Button("Generate"),
-                sg.Button("Save Chart"),
-                sg.Button("Exit")
-            ],
 
 
 
             # Chart configuration
             [sg.Text("Chart Configuration:",
                      font=('Helvetica', 12, 'bold'))],
+
+
+
 
             [
                 sg.Text("X Axis:"),
@@ -73,6 +70,14 @@ class LocalView:
 
             # Chart preview
             [sg.Text("Chart Preview:")],
+
+            # Chart actions
+            [
+                sg.Button("Generate"),
+                sg.Button("Save Chart"),
+                sg.Button("Exit")
+            ],
+            
             [sg.Canvas(key="-TOOLBAR-")],
             [sg.Canvas(size=(900, 550), key="-CANVAS-")]
 
