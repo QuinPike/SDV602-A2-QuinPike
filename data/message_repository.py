@@ -1,5 +1,5 @@
 from data.database_manager import DatabaseManager
-from datetime import datetime
+from datetime import datetime, timezone
 import config
 
 from model.chat_message import ChatMessage
@@ -10,25 +10,33 @@ class MessageRepository:
 
     def create_message(self, username, text, session_id):
 
-        message = ChatMessage(username, text, session_id=session_id)
+        message = ChatMessage(
+            username,
+            text,
+            session_id=session_id
+        )
 
         message.save()
 
+        return message
+    def all(self, session_id):
 
-        return self.db.insert_one(config.CHAT_MESSAGES_COLLECTION, {
-            "username": username,
-            "text": text,
-            "timestamp": timestamp
-        })
-
-    def all(self):
-
-        collection = self.db.get_collection(config.CHAT_MESSAGES_COLLECTION)
+        collection = self.db.get_collection(
+            config.CHAT_MESSAGES_COLLECTION
+        )
 
         messages = []
 
-        for document in collection.find().sort("timestamp"):
-            message = ChatMessage(document["username"], document["text"], document["timestamp"])
+        documents = collection.find({"session_id": session_id}).sort("timestamp", 1)
+
+        for document in documents:
+            message = ChatMessage(
+                document["username"],
+                document["text"],
+                timestamp=document.get("timestamp"),
+                session_id=document.get("session_id")
+            )
+
             messages.append(message)
 
         return messages

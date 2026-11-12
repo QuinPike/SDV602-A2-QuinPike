@@ -10,7 +10,31 @@ class SessionController:
 
     def run(self):
         while True:
-            sessions = self.session_repository.all()
+            public_sessions = self.session_repository.all()
+
+            private_sessions = self.session_repository.user_sessions(
+                self.user.name
+            )
+
+            sessions = public_sessions + private_sessions
+
+
+            #Debugging because of bugs 
+
+
+            print("Logged in user:", self.user.name)
+
+            print("Public sessions:", len(public_sessions))
+
+            print("Private sessions:", len(private_sessions))
+
+            for session in sessions:
+                print(
+                    session.name,
+                    session.session_id,
+                    session.is_public
+                )
+
             self.view.update_sessions(sessions)
 
             event, values = self.view.read()
@@ -19,10 +43,10 @@ class SessionController:
                 self.view.close()
                 return None
 
-            elif event == "Refresh":
+            if event == "Refresh":
                 continue
 
-            elif event == "Create":
+            if event == "Create":
                 name = values["-SESSION_NAME-"].strip()
 
                 if name:
@@ -33,21 +57,30 @@ class SessionController:
 
                     self.view.close()
                     return session
+
                 else:
                     self.view.show_error("Enter a session name.")
 
-            elif event == "Join":
+            if event == "Join":
                 selected = values["-SESSIONS-"]
 
                 if selected:
-                    session = self.session_repository.get_session(
-                        selected[0]
-                    )
+                    session_id = self.view.get_session_id(selected[0])
+
+                    session = self.session_repository.get_session(session_id)
 
                     if session:
+                        self.session_repository.join_session(
+                            session_id, self.user.name
+                        )
+
                         self.view.close()
                         return session
                     else:
                         self.view.show_error("Session not found.")
                 else:
                     self.view.show_error("Select a session first.")
+
+            if event == "-SESSIONS-":
+                print("Session selected:", values["-SESSIONS-"])
+                continue
