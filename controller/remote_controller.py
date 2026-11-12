@@ -17,7 +17,6 @@ class RemoteController:
 
         messages = self.message_repository.all(self.session_id)
         self.view.update_messages(messages)
-
         while True:
 
             event, values = self.view.read(
@@ -27,7 +26,7 @@ class RemoteController:
             if event == sg.WIN_CLOSED:
                 break
 
-            elif event == "__TIMEOUT__":
+            if event == "__TIMEOUT__":
 
                 messages = self.message_repository.all(
                     self.session_id
@@ -35,7 +34,7 @@ class RemoteController:
 
                 self.view.update_messages(messages)
 
-            elif event == "Send":
+            if event == "Send":
 
                 text = values["-CHAT-"].strip()
 
@@ -49,9 +48,8 @@ class RemoteController:
 
                     self.view.clear_input()
 
-                    messages = self.message_repository.all(
-                        self.session_id
-                    )
+                    messages = self.message_repository.all(self.session_id)
+
 
                     self.view.update_messages(messages)
 

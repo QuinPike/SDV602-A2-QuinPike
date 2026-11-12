@@ -21,6 +21,7 @@ class DatabaseManager:
         return self.client[config.DB_NAME][collection]
 
     def insert_one(self, collection, document):
+    
         return self.get_collection(collection).insert_one(document).inserted_id
 
     def find_one_by_id(self, collection, id):

@@ -18,23 +18,6 @@ class SessionController:
 
             sessions = public_sessions + private_sessions
 
-
-            #Debugging because of bugs 
-
-
-            print("Logged in user:", self.user.name)
-
-            print("Public sessions:", len(public_sessions))
-
-            print("Private sessions:", len(private_sessions))
-
-            for session in sessions:
-                print(
-                    session.name,
-                    session.session_id,
-                    session.is_public
-                )
-
             self.view.update_sessions(sessions)
 
             event, values = self.view.read()
@@ -80,7 +63,3 @@ class SessionController:
                         self.view.show_error("Session not found.")
                 else:
                     self.view.show_error("Select a session first.")
-
-            if event == "-SESSIONS-":
-                print("Session selected:", values["-SESSIONS-"])
-                continue
