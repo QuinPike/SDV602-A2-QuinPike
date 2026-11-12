@@ -1,6 +1,6 @@
 from data.database_manager import DatabaseManager
 from model.session import Session
-
+from bson import ObjectId
 
 class SessionRepository:
 
@@ -25,8 +25,6 @@ class SessionRepository:
         ]
 
     def get_session(self, session_id):
-        from bson import ObjectId
-
         document = self.collection.find_one({
             "_id": ObjectId(session_id)
         })
@@ -37,8 +35,6 @@ class SessionRepository:
         return None
 
     def join_session(self, session_id, username):
-        from bson import ObjectId
-
         result = self.collection.update_one(
             {"_id": ObjectId(session_id)},
             {"$addToSet": {"members": username}}
@@ -56,3 +52,19 @@ class SessionRepository:
             Session.from_document(document)
             for document in documents
         ]
+
+    def update_graph(self, session_id, graph_settings):
+        self.collection.update_one(
+            {"_id": ObjectId(session_id)},
+            {"$set": {"graph_settings": graph_settings}}
+        )
+
+    def get_graph(self, session_id):
+        session = self.collection.find_one({
+            "_id": ObjectId(session_id)
+        })
+
+        if session:
+            return session.get("graph_settings")
+
+        return None

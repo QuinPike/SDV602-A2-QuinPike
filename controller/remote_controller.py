@@ -8,6 +8,7 @@ import os
 from datetime import datetime, timezone
 
 from data.dataset_repository import DatasetRepository
+from data.session_repository import SessionRepository
 
 
 class RemoteController(DESController):
@@ -19,9 +20,12 @@ class RemoteController(DESController):
         self.username = username
         self.session_id = session_id
         self.message_repository = message_repository
+        self.last_graph_settings = None
 
         self.dataset_repository = DatasetRepository()
+        self.session_repository = SessionRepository()
         self.remote_datasets = {}
+        
 
     def run(self):
 
@@ -75,7 +79,9 @@ class RemoteController(DESController):
 
             # Generate chart
             if event == "Generate":
+
                 self.generate_chart(values)
+                self.save_graph_settings(values)
 
             # Save chart
             if event == "Save Chart":
@@ -90,10 +96,18 @@ class RemoteController(DESController):
 
             if event == "-REMOTE-DATASET-":
                 self.load_remote_dataset(values)
+
+            if event == "__TIMEOUT__":
+
+                self.sync_graph()
+
+                messages = self.message_repository.all(self.session_id)
+                self.view.update_messages(messages)
+
+
         self.view.close()
 
     def refresh_remote_datasets(self):
-
         datasets = self.dataset_repository.all_for_session(
             self.session_id
         )
@@ -167,6 +181,11 @@ class RemoteController(DESController):
         if not dataset:
             return
 
+        self.current_dataset_id = dataset["_id"]
+
+        if not dataset:
+            return
+
         # Load MongoDB data into DataVisualiser
         self.visualiser.load_data_from_records(
             dataset["data"]
@@ -189,3 +208,77 @@ class RemoteController(DESController):
         self.refresh_table()
 
         sg.popup("Remote dataset loaded successfully!")
+
+    def save_graph_settings(self, values):
+
+        if not self.current_dataset_id:
+            sg.popup_error("Please select a dataset first.")
+            return
+
+        settings = {
+            "dataset_id": str(self.current_dataset_id),
+            "x_axis": values["-X-"],
+            "y_axis": values["-Y-"],
+            "title": values["-TITLE-"],
+            "description": values["-DESCRIPTION-"]
+        }
+
+        self.session_repository.update_graph(
+            self.session_id,
+            settings
+        )
+
+        self.last_graph_settings = settings.copy()
+
+    def sync_graph(self):
+
+        settings = self.session_repository.get_graph(
+            self.session_id
+        )
+
+        if not settings:
+            return
+
+        if settings == self.last_graph_settings:
+            return
+
+        self.last_graph_settings = settings.copy()
+
+        # Load the shared dataset
+        dataset = self.dataset_repository.get_by_id(
+            settings["dataset_id"],
+            self.session_id
+        )
+
+        if not dataset:
+            return
+
+        self.visualiser.load_data_from_records(dataset["data"])
+
+        columns = dataset["columns"]
+
+        self.view.window["-X-"].update(
+            values=columns,
+            value=settings["x_axis"]
+        )
+
+        self.view.window["-Y-"].update(
+            values=columns,
+            value=settings["y_axis"]
+        )
+
+        self.refresh_table()
+
+        # Update chart controls
+        self.view.window["-X-"].update(value=settings["x_axis"])
+        self.view.window["-Y-"].update(value=settings["y_axis"])
+        self.view.window["-TITLE-"].update(value=settings["title"])
+        self.view.window["-DESCRIPTION-"].update(value=settings["description"])
+
+        # Regenerate graph
+        self.generate_chart({
+            "-X-": settings["x_axis"],
+            "-Y-": settings["y_axis"],
+            "-TITLE-": settings["title"],
+            "-DESCRIPTION-": settings["description"]
+        })
