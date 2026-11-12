@@ -8,11 +8,11 @@ class MessageRepository:
     def __init__(self):
         self.db = DatabaseManager.getInstance()
 
-    def create_message(self, username, text, timestamp=None):
-        if timestamp is None:
-            self.timestamp = datetime.now()
-        else:
-            self.timestamp = timestamp
+    def create_message(self, username, text, session_id):
+
+        message = ChatMessage(username, text, session_id=session_id)
+
+        message.save()
 
 
         return self.db.insert_one(config.CHAT_MESSAGES_COLLECTION, {

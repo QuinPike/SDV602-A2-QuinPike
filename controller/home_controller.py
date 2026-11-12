@@ -29,7 +29,7 @@ class HomeController:
                 self.view.hide()
                 user = LoginController(self.user_repository).run()
                 if user:
-                    RemoteController(user.name, self.message_repository).run()
+                    RemoteController(user.name, session_id, self.message_repository).run()
                 else:
                     print(user)
                 self.view.un_hide()
