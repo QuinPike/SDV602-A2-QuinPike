@@ -94,3 +94,7 @@ class DataVisualiser:
 
     def save_data(self, file_name):
         return self.file_manager.save_csv(file_name, self.data)
+
+    # Loads data and files from the database
+    def load_data_from_records(self, data):
+        self.data = data

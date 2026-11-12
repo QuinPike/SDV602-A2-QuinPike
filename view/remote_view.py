@@ -14,9 +14,10 @@ class RemoteView(DESView):
                 sg.Combo(
                     values=[],
                     key="-REMOTE-DATASET-",
-                    size=(30, 1)
+                    size=(30, 1),
+                    enable_events=True
                 ),
-
+                
                 sg.Button("Refresh Datasets"),
                 sg.Button("Upload Dataset")
             ],
