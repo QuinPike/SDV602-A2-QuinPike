@@ -20,18 +20,6 @@ class MessageRepository:
             
     def all(self, session_id):
         collection = self.db.get_collection(config.CHAT_MESSAGES_COLLECTION)
-
-        #Troubleshooting
-        print("Database:", config.DB_NAME)
-        print("Collection:", config.CHAT_MESSAGES_COLLECTION)
-        print("Session ID:", repr(session_id))
-
-        print("Total messages in collection:",
-            collection.count_documents({}))
-
-        print("All messages:",
-            list(collection.find({})))
-
         
         documents = collection.find(
             {"session_id": session_id}
