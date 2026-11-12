@@ -1,39 +1,72 @@
+from view.des_view import DESView
 import FreeSimpleGUI as sg
 
-class RemoteView:
-
+class RemoteView(DESView):
     def __init__(self):
-        sg.theme("DarkBlue")
 
-        self.layout = [
-            [sg.Multiline(size=(50, 20), disabled=True,
-                          autoscroll=True, key='-OUTPUT-')],
-            [sg.Input(size=(40, 5), key='-CHAT-', do_not_clear=True)],
-            [sg.Button('Send', bind_return_key=True)]
+        # Remote-specific controls
+        remote_layout = [
+
+            # Remote dataset selection
+            [
+                sg.Text("Remote Dataset"),
+
+                sg.Combo(
+                    values=[],
+                    key="-REMOTE-DATASET-",
+                    size=(30, 1)
+                ),
+
+                sg.Button("Refresh Datasets"),
+                sg.Button("Upload Dataset")
+            ],
+
+            # Session chat
+            [
+                sg.Text("Session Chat")
+            ],
+
+            [
+                sg.Multiline(
+                    size=(50, 10),
+                    disabled=True,
+                    autoscroll=True,
+                    key="-OUTPUT-"
+                )
+            ],
+
+            [
+                sg.Input(
+                    size=(40, 1),
+                    key="-CHAT-",
+                    do_not_clear=True
+                ),
+
+                sg.Button(
+                    "Send",
+                    bind_return_key=True
+                )
+            ]
         ]
 
-        self.window = sg.Window("Remote Mode", self.layout, finalize=True)
+        # Initialise shared DES interface
+        super().__init__(
+            additional_layout=remote_layout,
+            window_size=(1100, 850),
+            window_title="Remote Mode"
+        )
 
-    def update_messages(self, text):
-        formatted = self.format_messages(text)
-        self.window['-OUTPUT-'].update(formatted)
+    def update_messages(self, messages):
+
+        formatted = self.format_messages(messages)
+
+        self.window["-OUTPUT-"].update(formatted)
 
     def clear_input(self):
-        self.window['-CHAT-'].update('')
-
-    def read(self, timeout=None):
-        return self.window.read(timeout=timeout)
-
-    def close(self):
-        self.window.close()
-
-    def show_error(self, message):
-        sg.popup_error(message)
-
-    def show_message(self, message):
-        sg.popup(message)
+        self.window["-CHAT-"].update("")
 
     def format_messages(self, messages=None):
+
         if messages is None:
             messages = []
 
