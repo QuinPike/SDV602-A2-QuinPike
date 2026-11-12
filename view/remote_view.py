@@ -33,10 +33,13 @@ class RemoteView:
     def show_message(self, message):
         sg.popup(message)
 
-    def format_messages(self, messages=[]):
-        if messages:
-            output = ""
-            for message in messages:
-                output += f"{message.username}: {message.text}\n"
+    def format_messages(self, messages=None):
+        if messages is None:
+            messages = []
 
-            return output
+        output = ""
+
+        for message in messages:
+            output += f"{message.username}: {message.text}\n"
+
+        return output

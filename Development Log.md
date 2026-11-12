@@ -29,3 +29,7 @@ The block of code above shows the widget and canvas being created, allowing it t
 <img width="409" height="277" alt="image" src="https://github.com/user-attachments/assets/046e8b3c-c86a-481f-974c-b690ec66fd7c" /> <br>
 
 I used Tkinter to generate the chart when the user generates a table and it gives the option for a toolbar. 
+
+
+## Remote Mode Development 
+I Have started making remote mode after completing local mode. I will not make the DES and graphing yet, and just create the multiple sessions and allowing multi-threading for allowing many people at once to view the chat and data. 

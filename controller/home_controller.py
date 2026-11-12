@@ -2,9 +2,12 @@ from view.home_view import HomeView
 import FreeSimpleGUI as sg
 from controller.remote_controller import RemoteController
 from controller.login_controller import LoginController
+from controller.session_controller import SessionController
 from data.user_repository import UserRepository
 from data.message_repository import MessageRepository
+from data.session_repository import SessionRepository
 from controller.local_controller import LocalController
+
 
 class HomeController:
     def __init__(self):
@@ -12,10 +15,12 @@ class HomeController:
         self.figure_agg = None
         self.user_repository = UserRepository()
         self.message_repository = MessageRepository()
+        self.session_repository = SessionRepository()
 
     def run(self):
-        while True: 
+        while True:
             event, values = self.view.read()
+
             if event in (sg.WIN_CLOSED, "Cancel"):
                 self.view.close()
                 return
@@ -27,9 +32,20 @@ class HomeController:
 
             if event == "Remote":
                 self.view.hide()
+
                 user = LoginController(self.user_repository).run()
+
                 if user:
-                    RemoteController(user.name, self.message_repository).run()
-                else:
-                    print(user)
+                    session = SessionController(
+                        user,
+                        self.session_repository
+                    ).run()
+
+                    if session:
+                        RemoteController(
+                            user.name,
+                            session.session_id,
+                            self.message_repository
+                        ).run()
+
                 self.view.un_hide()

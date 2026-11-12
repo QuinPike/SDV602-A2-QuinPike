@@ -1,13 +1,15 @@
 from data.database_manager import DatabaseManager
-
+import config
+from datetime import datetime, timezone
 
 class ChatMessage:
-    # Make a collection variable 
-    COLLECTION = "messages"
+    COLLECTION = config.CHAT_MESSAGES_COLLECTION
 
-    def __init__(self, username, text, timestamp=None):
+    def __init__(self, username, text, timestamp=None, session_id=None):
         self.username = username
         self.text = text
+        self.timestamp = timestamp
+        self.session_id = session_id
         self.timestamp = timestamp
 
     def save(self):
@@ -16,17 +18,20 @@ class ChatMessage:
         document = {
             "username": self.username,
             "text": self.text,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
+            "session_id": self.session_id
         }
 
-        db.insert_one(self.COLLECTION, document)
+        return db.insert_one(self.COLLECTION, document)
 
     @classmethod
-    def all(cls):
+    def all(cls, session_id):
         db = DatabaseManager.getInstance()
         collection = db.get_collection(cls.COLLECTION)
 
-        documents = collection.find().sort("_id", 1)
+        documents = collection.find(
+            {"session_id": session_id}
+        ).sort("timestamp", 1)
 
         messages = []
 
@@ -34,7 +39,8 @@ class ChatMessage:
             message = cls(
                 username=document["username"],
                 text=document["text"],
-                timestamp=document.get("timestamp")
+                timestamp=document.get("timestamp"),
+                session_id=document.get("session_id")
             )
             messages.append(message)
 

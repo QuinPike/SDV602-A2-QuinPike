@@ -4,7 +4,7 @@ import config
 
 class User:
 
-    def __init__(self, name, password):
-        # self.id = id
+    def __init__(self, name, password, user_id=None):
+        self.id = user_id
         self.name = name
         self.password = password

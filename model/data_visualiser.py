@@ -1,4 +1,4 @@
-from file_manager import FileManager
+from model.file_manager import FileManager
 import matplotlib.pyplot as plt
 from operator import itemgetter
 

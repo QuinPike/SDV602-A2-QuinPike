@@ -36,15 +36,9 @@ class LocalView:
                 )
             ],
 
-
-
-
             # Chart configuration
             [sg.Text("Chart Configuration:",
                      font=('Helvetica', 12, 'bold'))],
-
-
-
 
             [
                 sg.Text("X Axis:"),
