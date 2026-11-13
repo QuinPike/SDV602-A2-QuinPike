@@ -5,7 +5,6 @@ import config
 import FreeSimpleGUI as sg
 import csv
 import os
-from datetime import datetime, timezone
 
 from data.dataset_repository import DatasetRepository
 from data.session_repository import SessionRepository
@@ -25,6 +24,8 @@ class RemoteController(DESController):
         self.dataset_repository = DatasetRepository()
         self.session_repository = SessionRepository()
         self.remote_datasets = {}
+        self.current_dataset_id = None
+        self.last_dataset_ids = set()
         
 
     def run(self):
@@ -48,7 +49,11 @@ class RemoteController(DESController):
                 break
 
             # Refresh chat messages
-            elif event == "__TIMEOUT__":
+            if event == "__TIMEOUT__":
+
+                self.sync_graph()
+
+                self.refresh_remote_datasets()
 
                 messages = self.message_repository.all(
                     self.session_id
@@ -81,7 +86,9 @@ class RemoteController(DESController):
             if event == "Generate":
 
                 self.generate_chart(values)
-                self.save_graph_settings(values)
+
+                if self.generated:
+                    self.save_graph_settings(values)
 
             # Save chart
             if event == "Save Chart":
@@ -97,23 +104,23 @@ class RemoteController(DESController):
             if event == "-REMOTE-DATASET-":
                 self.load_remote_dataset(values)
 
-            if event == "__TIMEOUT__":
-
-                self.sync_graph()
-
-                messages = self.message_repository.all(self.session_id)
-                self.view.update_messages(messages)
-
-
         self.view.close()
 
     def refresh_remote_datasets(self):
+
         datasets = self.dataset_repository.all_for_session(
             self.session_id
         )
 
-        self.remote_datasets = {}
+        dataset_ids = {str(dataset["_id"]) for dataset in datasets}
 
+        # Only update the dropdown when datasets have changed
+        if dataset_ids == self.last_dataset_ids:
+            return
+
+        self.last_dataset_ids = dataset_ids
+
+        self.remote_datasets = {}
         labels = []
 
         for dataset in datasets:
@@ -183,9 +190,6 @@ class RemoteController(DESController):
 
         self.current_dataset_id = dataset["_id"]
 
-        if not dataset:
-            return
-
         # Load MongoDB data into DataVisualiser
         self.visualiser.load_data_from_records(
             dataset["data"]
@@ -220,7 +224,8 @@ class RemoteController(DESController):
             "x_axis": values["-X-"],
             "y_axis": values["-Y-"],
             "title": values["-TITLE-"],
-            "description": values["-DESCRIPTION-"]
+            "description": values["-DESCRIPTION-"],
+            "chart_type": values["-CHART-TYPE-"]
         }
 
         self.session_repository.update_graph(
@@ -242,8 +247,6 @@ class RemoteController(DESController):
         if settings == self.last_graph_settings:
             return
 
-        self.last_graph_settings = settings.copy()
-
         # Load the shared dataset
         dataset = self.dataset_repository.get_by_id(
             settings["dataset_id"],
@@ -252,6 +255,10 @@ class RemoteController(DESController):
 
         if not dataset:
             return
+
+        self.last_graph_settings = settings.copy()
+
+        self.current_dataset_id = dataset["_id"]
 
         self.visualiser.load_data_from_records(dataset["data"])
 
@@ -276,9 +283,16 @@ class RemoteController(DESController):
         self.view.window["-DESCRIPTION-"].update(value=settings["description"])
 
         # Regenerate graph
+        self.view.window["-CHART-TYPE-"].update(
+            value=settings["chart_type"]
+        )
+
         self.generate_chart({
             "-X-": settings["x_axis"],
             "-Y-": settings["y_axis"],
             "-TITLE-": settings["title"],
-            "-DESCRIPTION-": settings["description"]
+            "-DESCRIPTION-": settings["description"],
+            "-CHART-TYPE-": settings["chart_type"]
         })
+
+        

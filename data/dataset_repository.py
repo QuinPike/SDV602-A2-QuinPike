@@ -1,7 +1,7 @@
-
 from data.database_manager import DatabaseManager
+from bson import ObjectId
 
-""" 
+"""
 Data repository to help store files inside the database.
 """
 class DatasetRepository:
@@ -21,13 +21,23 @@ class DatasetRepository:
             "data": data
         }
 
-        # DatabaseManager.insert_one returns the ObjectId directly
         return self.db.insert_one(self.COLLECTION, document)
 
     def all_for_session(self, session_id):
 
         collection = self.db.get_collection(self.COLLECTION)
 
-        datasets = collection.find({"session_id": session_id}).sort("filename", 1)
+        datasets = collection.find(
+            {"session_id": session_id}
+        ).sort("filename", 1)
 
         return list(datasets)
+
+    def get_by_id(self, dataset_id, session_id):
+
+        collection = self.db.get_collection(self.COLLECTION)
+
+        return collection.find_one({
+            "_id": ObjectId(dataset_id),
+            "session_id": session_id
+        })

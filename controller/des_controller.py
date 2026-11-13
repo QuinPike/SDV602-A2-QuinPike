@@ -51,6 +51,7 @@ class DESController:
         y_key = values["-Y-"]
         title = values["-TITLE-"]
         description = values["-DESCRIPTION-"]
+        chart_type = values["-CHART-TYPE-"]
 
         if not self.visualiser.data:
             sg.popup_error("Please load data first.")
@@ -61,17 +62,30 @@ class DESController:
             return
 
         try:
-            fig = self.visualiser.plot_line_chart(
-                x_key=x_key,
-                y_key=y_key,
-                title=title
-            )
+            # Generate the selected chart type
+            if chart_type == "Line":
+                fig = self.visualiser.plot_line_chart(
+                    x_key=x_key,
+                    y_key=y_key,
+                    title=title
+                )
+
+            elif chart_type == "Bar":
+                fig = self.visualiser.plot_bar_chart(
+                    x_key=x_key,
+                    y_key=y_key,
+                    title=title
+                )
+
+            else:
+                sg.popup_error("Please select a valid chart type.")
+                return
 
             if fig is None:
                 sg.popup_error("Failed to generate chart.")
                 return
 
-            # Add the description before drawing the figure
+            # Add the description
             fig.text(
                 0.5, 0.02,
                 description,

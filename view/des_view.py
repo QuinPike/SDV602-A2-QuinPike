@@ -62,6 +62,15 @@ class DESView:
                 )
             ],
 
+            [
+                sg.Text("Chart Type:"),
+                sg.Combo(
+                    ["Line", "Bar"],
+                    default_value="Line",
+                    key="-CHART-TYPE-",
+                    readonly=True
+                )
+            ],
             [sg.Text("Chart Description:")],
 
             [
