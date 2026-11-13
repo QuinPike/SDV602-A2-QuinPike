@@ -200,14 +200,12 @@ class RemoteController(DESController):
         if not dataset:
             return
 
-        # Load MongoDB data into DataVisualiser
         self.visualiser.load_data_from_records(
             dataset["data"]
         )
 
         columns = dataset["columns"]
 
-        # Update chart axis selections
         self.view.window["-X-"].update(
             values=columns,
             value=columns[0]
@@ -269,8 +267,6 @@ class RemoteController(DESController):
         self.current_version = new_version
         self.last_graph_settings = graph_settings
 
-        return True
-
     def sync_session(self, force=False):
 
         state = self.session_repository.get_shared_state(
@@ -282,7 +278,6 @@ class RemoteController(DESController):
 
         version = state["version"]
 
-        # Don't reload data that we already have.
         if not force and version <= self.current_version:
             return
 
@@ -290,7 +285,6 @@ class RemoteController(DESController):
         columns = state["columns"]
         settings = state["graph_settings"]
 
-        # Load the latest shared data.
         if data:
             self.visualiser.load_data_from_records(data)
         else:
@@ -323,7 +317,6 @@ class RemoteController(DESController):
 
         self.refresh_table()
 
-        # Update graph settings and regenerate the chart.
         if settings and data:
 
             self.view.window["-X-"].update(
