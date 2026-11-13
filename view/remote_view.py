@@ -22,15 +22,6 @@ class RemoteView(DESView):
                 sg.Button("Upload Dataset")
             ],
 
-            # Local CSV files
-            [sg.Text("Local CSV File (not uploaded to database)")],
-            [
-                sg.Input(key="-FILE-", size=(35, 1)),
-                sg.FileBrowse(file_types=(("CSV Files", "*.csv"),)),
-                sg.Button("Load Local CSV"),
-                sg.Button("Add Local CSV")
-            ],
-
             # Data management
             [
                 sg.Button("Remove Selected"),
@@ -72,14 +63,17 @@ class RemoteView(DESView):
     def clear_input(self):
         self.window["-CHAT-"].update("")
 
-    def format_messages(self, messages=None):
-
-        if messages is None:
-            messages = []
-
+    def format_messages(self, messages):
         output = ""
 
         for message in messages:
-            output += f"{message.username}: {message.text}\n"
+            if isinstance(message, dict):
+                username = message["username"]
+                text = message["text"]
+            else:
+                username = message.username
+                text = message.text
+
+            output += f"{username}: {text}\n"
 
         return output

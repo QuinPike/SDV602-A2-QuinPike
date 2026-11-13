@@ -4,7 +4,6 @@ from controller.remote_controller import RemoteController
 from controller.login_controller import LoginController
 from controller.session_controller import SessionController
 from data.user_repository import UserRepository
-from data.message_repository import MessageRepository
 from data.session_repository import SessionRepository
 from controller.local_controller import LocalController
 
@@ -14,7 +13,6 @@ class HomeController:
         self.view = HomeView()
         self.figure_agg = None
         self.user_repository = UserRepository()
-        self.message_repository = MessageRepository()
         self.session_repository = SessionRepository()
 
     def run(self):
@@ -44,8 +42,7 @@ class HomeController:
                     if session:
                         RemoteController(
                             user.name,
-                            session.session_id,
-                            self.message_repository
+                            session.session_id
                         ).run()
 
                 self.view.un_hide()

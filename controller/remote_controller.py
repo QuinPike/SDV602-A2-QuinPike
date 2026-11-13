@@ -2,150 +2,120 @@ from controller.des_controller import DESController
 from view.remote_view import RemoteView
 import config
 import FreeSimpleGUI as sg
-import csv
-import os
 
-from data.dataset_repository import DatasetRepository
-from data.session_repository import SessionRepository
+import multiprocessing
+from queue import Empty
+from controller.remote_worker import remote_worker
 
 
 class RemoteController(DESController):
 
-    def __init__(self, username, session_id, message_repository):
+    def __init__(self, username, session_id):
 
         super().__init__(RemoteView())
 
         self.username = username
         self.session_id = session_id
-        self.message_repository = message_repository
         self.last_graph_settings = None
 
-        self.dataset_repository = DatasetRepository()
-        self.session_repository = SessionRepository()
         self.remote_datasets = {}
         self.last_dataset_ids = set()
         self.current_version = -1
+
+        self.process_context = multiprocessing.get_context("spawn")
+
+        self.request_queue = None
+        self.result_queue = None
+        self.worker_process = None
+
+        self.next_request_id = 0
+        self.pending_requests = {}
         
+
 
     def run(self):
 
         self.placeholder_chart()
+        self.start_worker()
 
-        self.refresh_remote_datasets()
+        try:
 
-        # Load the current shared session state.
-        self.sync_session(force=True)
+            self.refresh_remote_datasets()
+            self.sync_session(force=True)
+            self.send_worker_request("GET_MESSAGES")
 
-        messages = self.message_repository.all(self.session_id)
-        self.view.update_messages(messages)
+            while True:
 
-        while True:
-
-            event, values = self.view.read(
-                timeout=config.POLL_RATE
-            )
-
-            if event == sg.WIN_CLOSED:
-                break
-
-            # Refresh chat messages
-            if event == "__TIMEOUT__":
-
-                self.sync_session()
-
-                self.refresh_remote_datasets()
-
-                messages = self.message_repository.all(
-                    self.session_id
+                event, values = self.view.read(
+                    timeout=config.POLL_RATE
                 )
 
-                self.view.update_messages(messages)
+                if event == sg.WIN_CLOSED:
+                    break
 
-            # Send chat message
-            if event == "Send":
+                # Process responses from the worker.
+                for result in self.process_worker_results():
+                    self.handle_worker_result(result)
 
-                text = values["-CHAT-"].strip()
+                # Periodically synchronise remote data.
+                if event == "__TIMEOUT__":
 
-                if text:
+                    self.sync_session()
+                    self.refresh_remote_datasets()
+                    self.send_worker_request("GET_MESSAGES")
 
-                    self.message_repository.create_message(
-                        self.username,
-                        text,
-                        self.session_id
-                    )
+                elif event == "Send":
 
-                    self.view.clear_input()
+                    message = values["-CHAT-"].strip()
 
-                    messages = self.message_repository.all(
-                        self.session_id
-                    )
+                    if message:
+                        self.send_worker_request(
+                            "SEND_MESSAGE",
+                            {"text": message}
+                        )
 
-                    self.view.update_messages(messages)
+                elif event == "Generate":
 
-            # Generate chart
-            if event == "Generate":
+                    self.generate_chart(values)
 
-                self.generate_chart(values)
+                    if self.generated:
+                        self.publish_session(values)
 
-                if self.generated:
-                    self.publish_session(values)
+                elif event == "Save Chart":
+                    self.save_chart()
 
-            # Save chart
-            if event == "Save Chart":
-                self.save_chart()
+                elif event == "Refresh Datasets":
+                    self.refresh_remote_datasets()
 
+                elif event == "Upload Dataset":
+                    self.upload_dataset()
 
-            if event == "Refresh Datasets":
-                self.refresh_remote_datasets()
+                elif event == "Remove Selected":
 
-            if event == "Upload Dataset":
-                self.upload_dataset()
+                    if self.remove_selected_row(values):
+                        self.publish_session()
 
-            if event == "Remove Selected":
-                self.remove_selected_row(values)
-                self.publish_session()
+                elif event == "Clear Data":
 
-            if event == "Clear Data":
-                self.clear_data()
-                self.last_graph_settings = None
-                self.publish_session()
+                    self.clear_data()
+                    self.last_graph_settings = None
+                    self.publish_session()
 
-            if event == "Load Remote Dataset":
-                self.load_remote_dataset(values)
+                elif event == "Load Remote Dataset":
+                    self.load_remote_dataset(values)
 
-            if event == "Add Remote Dataset":
-                self.add_remote_dataset(values)
+                elif event == "Add Remote Dataset":
+                    self.add_remote_dataset(values)
 
-        self.view.close()
+        finally:
+
+            self.stop_worker()
+            self.view.close()
+
 
     def refresh_remote_datasets(self):
 
-        datasets = self.dataset_repository.all_for_session(
-            self.session_id
-        )
-
-        dataset_ids = {str(dataset["_id"]) for dataset in datasets}
-
-        # Only update the dropdown when datasets have changed
-        if dataset_ids == self.last_dataset_ids:
-            return
-
-        self.last_dataset_ids = dataset_ids
-
-        self.remote_datasets = {}
-        labels = []
-
-        for dataset in datasets:
-
-            label = f'{dataset["filename"]} ({str(dataset["_id"])[-6:]})'
-
-            self.remote_datasets[label] = dataset
-            labels.append(label)
-
-        self.view.window["-REMOTE-DATASET-"].update(
-            values=labels,
-            value=""
-        )
+        self.send_worker_request("REFRESH_DATASETS")
 
     def upload_dataset(self):
 
@@ -158,39 +128,15 @@ class RemoteController(DESController):
         if not filepath:
             return
 
-        try:
-
-            with open(filepath, "r", newline="", encoding="utf-8-sig") as file:
-
-                reader = csv.DictReader(file)
-
-                columns = reader.fieldnames
-                data = list(reader)
-
-            if not columns or not data:
-                sg.popup_error("The CSV file is empty or invalid.")
-                return
-
-            self.dataset_repository.create_dataset(
-                filename=os.path.basename(filepath),
-                username=self.username,
-                session_id=self.session_id,
-                columns=columns,
-                data=data
-            )
-
-            sg.popup("Dataset uploaded successfully!")
-
-            self.refresh_remote_datasets()
-
-        except Exception as error:
-
-            sg.popup_error(f"Could not upload dataset: {error}")
+        self.send_worker_request(
+            "UPLOAD_DATASET",
+            {"filepath": filepath}
+        )
 
 
     def load_remote_dataset(self, values):
+
         selected = values.get("-REMOTE-DATASET-")
-        self.last_graph_settings = None
 
         if not selected:
             return
@@ -200,30 +146,11 @@ class RemoteController(DESController):
         if not dataset:
             return
 
-        self.visualiser.load_data_from_records(
-            dataset["data"]
+        self.send_worker_request(
+            "GET_DATASET",
+            {"dataset_id": dataset["id"]},
+            context={"operation": "load"}
         )
-
-        columns = dataset["columns"]
-
-        self.view.window["-X-"].update(
-            values=columns,
-            value=columns[0]
-        )
-
-        self.view.window["-Y-"].update(
-            values=columns,
-            value=columns[1] if len(columns) > 1 else columns[0]
-        )
-
-        # Refresh the data preview
-        self.refresh_table()
-
-        self.clear_chart()
-        self.last_graph_settings = None
-        self.publish_session()
-
-        sg.popup("Remote dataset loaded successfully!")
 
     def publish_session(self, values=None):
 
@@ -247,31 +174,148 @@ class RemoteController(DESController):
             "graph_settings": graph_settings
         }
 
-        new_version = self.session_repository.update_shared_state(
-            self.session_id,
-            state,
-            self.current_version
+        self.send_worker_request(
+            "PUBLISH_SESSION",
+            {
+                "state": state,
+                "expected_version": self.current_version
+            },
+            context={
+                "graph_settings": graph_settings
+            }
         )
-
-        if new_version is None:
-
-            sg.popup_error(
-                "Another user has updated the session. "
-                "Your changes could not be saved. "
-                "The latest shared data will now be loaded."
-            )
-
-            self.sync_session(force=True)
-            return False
-
-        self.current_version = new_version
-        self.last_graph_settings = graph_settings
 
     def sync_session(self, force=False):
 
-        state = self.session_repository.get_shared_state(
-            self.session_id
+        self.send_worker_request(
+            "SYNC_SESSION",
+            context={"force": force}
         )
+
+    def add_remote_dataset(self, values):
+
+        selected = values.get("-REMOTE-DATASET-")
+
+        if not selected:
+            sg.popup_error("Please select a remote dataset.")
+            return
+
+        dataset = self.remote_datasets.get(selected)
+
+        if not dataset:
+            sg.popup_error("Remote dataset not found.")
+            return
+
+        if not self.visualiser.data:
+            sg.popup_error("Load a dataset first.")
+            return
+
+        self.send_worker_request(
+            "GET_DATASET",
+            {"dataset_id": dataset["id"]},
+            context={"operation": "add"}
+        )
+
+    def start_worker(self):
+
+        self.request_queue = self.process_context.Queue()
+        self.result_queue = self.process_context.Queue()
+
+        self.worker_process = self.process_context.Process(
+            target=remote_worker,
+            args=(
+                self.request_queue,
+                self.result_queue,
+                self.username,
+                self.session_id
+            )
+        )
+
+        self.worker_process.start()
+
+
+    def send_worker_request(self, action, payload=None, context=None):
+
+        self.next_request_id += 1
+        request_id = self.next_request_id
+
+        self.pending_requests[request_id] = context or {}
+
+        self.request_queue.put({
+            "request_id": request_id,
+            "action": action,
+            "payload": payload or {}
+        })
+
+        return request_id
+
+
+    def process_worker_results(self):
+
+        results = []
+
+        while True:
+
+            try:
+                result = self.result_queue.get_nowait()
+                results.append(result)
+
+            except Empty:
+                break
+
+        return results
+
+
+    def stop_worker(self):
+
+        if self.worker_process is None:
+            return
+
+        if self.worker_process.is_alive():
+
+            self.request_queue.put(None)
+
+            self.worker_process.join(timeout=5)
+
+            if self.worker_process.is_alive():
+                self.worker_process.terminate()
+                self.worker_process.join()
+
+        self.request_queue.close()
+        self.result_queue.close()
+
+        self.worker_process = None
+        self.request_queue = None
+        self.result_queue = None
+
+    def update_remote_datasets(self, datasets):
+
+        dataset_ids = {dataset["id"] for dataset in datasets}
+
+        if dataset_ids == self.last_dataset_ids:
+            return
+
+        self.last_dataset_ids = dataset_ids
+
+        self.remote_datasets = {}
+        labels = []
+
+        for dataset in datasets:
+
+            label = (
+                f'{dataset["filename"]} '
+                f'({dataset["id"][-6:]})'
+            )
+
+            self.remote_datasets[label] = dataset
+            labels.append(label)
+
+        self.view.window["-REMOTE-DATASET-"].update(
+            values=labels,
+            value=""
+        )
+
+    def apply_shared_state(self, state, force=False):
 
         if not state:
             return
@@ -290,7 +334,6 @@ class RemoteController(DESController):
         else:
             self.clear_data()
 
-        # Update axis dropdowns.
         if columns:
 
             self.view.window["-X-"].update(
@@ -305,36 +348,19 @@ class RemoteController(DESController):
 
         else:
 
-            self.view.window["-X-"].update(
-                values=[],
-                value=""
-            )
-
-            self.view.window["-Y-"].update(
-                values=[],
-                value=""
-            )
+            self.view.window["-X-"].update(values=[], value="")
+            self.view.window["-Y-"].update(values=[], value="")
 
         self.refresh_table()
 
         if settings and data:
 
-            self.view.window["-X-"].update(
-                value=settings["x_axis"]
-            )
-
-            self.view.window["-Y-"].update(
-                value=settings["y_axis"]
-            )
-
-            self.view.window["-TITLE-"].update(
-                value=settings["title"]
-            )
-
+            self.view.window["-X-"].update(value=settings["x_axis"])
+            self.view.window["-Y-"].update(value=settings["y_axis"])
+            self.view.window["-TITLE-"].update(value=settings["title"])
             self.view.window["-DESCRIPTION-"].update(
                 value=settings["description"]
             )
-
             self.view.window["-CHART-TYPE-"].update(
                 value=settings["chart_type"]
             )
@@ -353,34 +379,122 @@ class RemoteController(DESController):
         self.last_graph_settings = settings
         self.current_version = version
 
-    def add_remote_dataset(self, values):
-        selected = values.get("-REMOTE-DATASET-")
+    def handle_worker_result(self, result):
 
-        if not selected:
-            sg.popup_error("Please select a remote dataset.")
-            return
-        
-        
-        dataset = self.remote_datasets.get(selected)
+        request_id = result["request_id"]
+        action = result["action"]
 
-        if not dataset:
-            sg.popup_error("Remote dataset not found.")
+        context = self.pending_requests.pop(request_id, {})
+
+        if action == "WORKER_READY":
+            print("Remote worker is ready.")
             return
 
-        if not self.visualiser.data:
-            sg.popup_error("Load a dataset first.")
-            return
-
-        if self.visualiser.append_records(dataset["data"]):
-
-            self.last_graph_settings = None
-
-            self.refresh_table()
-            self.clear_chart()
-            self.publish_session()
-
-            sg.popup("Remote data added successfully.")
-        else:
+        if action == "WORKER_ERROR":
             sg.popup_error(
-                "Unable to add data. Check that the dataset columns match."
+                f"Remote worker failed to start: {result.get('error')}"
             )
+            return
+
+        if not result["success"]:
+
+            error = result.get("error", "Unknown worker error.")
+
+            if action == "PUBLISH_SESSION" and "SESSION_CONFLICT" in error:
+
+                sg.popup_error(
+                    "Another user has updated the session. "
+                    "Your changes could not be saved. "
+                    "The latest shared data will now be loaded."
+                )
+
+                self.sync_session(force=True)
+
+            else:
+                sg.popup_error(f"{action} failed: {error}")
+
+            return
+
+        data = result["data"]
+
+        # Refresh dataset dropdown.
+        if action == "REFRESH_DATASETS":
+
+            self.update_remote_datasets(data)
+
+        # Dataset upload completed.
+        elif action == "UPLOAD_DATASET":
+
+            sg.popup("Dataset uploaded successfully!")
+            self.refresh_remote_datasets()
+
+        # Dataset retrieved.
+        elif action == "GET_DATASET":
+
+            operation = context.get("operation")
+
+            if operation == "load":
+
+                self.visualiser.load_data_from_records(data["data"])
+
+                columns = data["columns"]
+
+                self.view.window["-X-"].update(
+                    values=columns,
+                    value=columns[0]
+                )
+
+                self.view.window["-Y-"].update(
+                    values=columns,
+                    value=columns[1] if len(columns) > 1 else columns[0]
+                )
+
+                self.refresh_table()
+                self.clear_chart()
+                self.last_graph_settings = None
+                self.publish_session()
+
+                sg.popup("Remote dataset loaded successfully!")
+
+            elif operation == "add":
+
+                if self.visualiser.append_records(data["data"]):
+
+                    self.last_graph_settings = None
+
+                    self.refresh_table()
+                    self.clear_chart()
+                    self.publish_session()
+
+                    sg.popup("Remote data added successfully.")
+
+                else:
+                    sg.popup_error(
+                        "Unable to add data. "
+                        "Check that the dataset columns match."
+                    )
+
+        # Shared session synchronisation.
+        elif action == "SYNC_SESSION":
+
+            self.apply_shared_state(
+                data,
+                force=context.get("force", False)
+            )
+
+        # Shared session publishing.
+        elif action == "PUBLISH_SESSION":
+
+            self.current_version = data
+            self.last_graph_settings = context.get("graph_settings")
+
+        # Retrieve chat messages.
+        elif action == "GET_MESSAGES":
+
+            self.view.update_messages(data)
+
+        # Send chat message.
+        elif action == "SEND_MESSAGE":
+
+            self.view.clear_input()
+            self.send_worker_request("GET_MESSAGES")
