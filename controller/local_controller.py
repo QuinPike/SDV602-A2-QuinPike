@@ -53,39 +53,19 @@ class LocalController(DESController):
 
             # Add another CSV dataset
             if event == "Add Data":
+
                 file_path = values["-FILE-"]
 
                 if not file_path:
                     sg.popup_error("Please select a CSV file.")
                     continue
 
-                if not self.visualiser.data:
-                    sg.popup_error(
-                        "Load your first dataset before adding another."
-                    )
-                    continue
-
-                if self.visualiser.append_data(file_path):
-                    self.refresh_table()
-                    self.clear_chart()
+                if self.add_data(file_path):
                     sg.popup("Data added successfully.")
-                else:
-                    sg.popup_error(
-                        "Unable to add data. Check that the CSV columns match."
-                    )
 
             # Remove selected table row
             if event == "Remove Selected":
-                selected = values.get(self.view.current_table_key, [])
-
-                if not selected:
-                    sg.popup_error("Please select a row.")
-                    continue
-
-                self.visualiser.remove_data(selected[0])
-
-                self.refresh_table()
-                self.clear_chart()
+                self.remove_selected_row(values)
 
             # Clear all data
             if event == "Clear Data":

@@ -41,3 +41,20 @@ class DatasetRepository:
             "_id": ObjectId(dataset_id),
             "session_id": session_id
         })
+
+    def update_dataset(self, dataset_id, session_id, columns, data):
+
+        collection = self.db.get_collection(self.COLLECTION)
+
+        return collection.update_one(
+            {
+                "_id": ObjectId(dataset_id),
+                "session_id": session_id
+            },
+            {
+                "$set": {
+                    "columns": columns,
+                    "data": data
+                }
+            }
+        )        

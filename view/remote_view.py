@@ -2,31 +2,43 @@ from view.des_view import DESView
 import FreeSimpleGUI as sg
 
 class RemoteView(DESView):
+
     def __init__(self):
 
-        # Remote-specific controls
         remote_layout = [
-
-            # Remote dataset selection
+            # Remote datasets
+            [sg.Text("Remote Datasets")],
             [
-                sg.Text("Remote Dataset"),
-
                 sg.Combo(
                     values=[],
                     key="-REMOTE-DATASET-",
-                    size=(30, 1),
-                    enable_events=True
+                    size=(30, 1)
                 ),
-                
+                sg.Button("Load Remote Dataset"),
+                sg.Button("Add Remote Dataset")
+            ],
+            [
                 sg.Button("Refresh Datasets"),
                 sg.Button("Upload Dataset")
             ],
 
-            # Session chat
+            # Local CSV files
+            [sg.Text("Local CSV File (not uploaded to database)")],
             [
-                sg.Text("Session Chat")
+                sg.Input(key="-FILE-", size=(35, 1)),
+                sg.FileBrowse(file_types=(("CSV Files", "*.csv"),)),
+                sg.Button("Load Local CSV"),
+                sg.Button("Add Local CSV")
             ],
 
+            # Data management
+            [
+                sg.Button("Remove Selected"),
+                sg.Button("Clear Data")
+            ],
+
+            # Session chat
+            [sg.Text("Session Chat")],
             [
                 sg.Multiline(
                     size=(50, 10),
@@ -35,25 +47,19 @@ class RemoteView(DESView):
                     key="-OUTPUT-"
                 )
             ],
-
             [
                 sg.Input(
                     size=(40, 1),
                     key="-CHAT-",
                     do_not_clear=True
                 ),
-
-                sg.Button(
-                    "Send",
-                    bind_return_key=True
-                )
+                sg.Button("Send", bind_return_key=True)
             ]
         ]
 
-        # Initialise shared DES interface
         super().__init__(
             additional_layout=remote_layout,
-            window_size=(1100, 850),
+            window_size=(1100, 900),
             window_title="Remote Mode"
         )
 

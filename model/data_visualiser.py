@@ -140,3 +140,20 @@ class DataVisualiser:
             "_id": ObjectId(dataset_id),
             "session_id": session_id
         })
+
+    def append_records(self, records):
+        if not records:
+            return False
+
+        if not self.data:
+            self.data = records.copy()
+            return True
+
+        existing_columns = self.get_columns()
+        new_columns = list(records[0].keys())
+
+        if existing_columns != new_columns:
+            return False
+
+        self.data.extend(records)
+        return True    

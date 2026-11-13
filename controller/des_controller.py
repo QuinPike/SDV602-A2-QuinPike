@@ -165,3 +165,50 @@ class DESController:
         canvas_element = self.view.window["-CANVAS-"].TKCanvas
 
         self.figure_agg = self._draw_figure(canvas_element, fig)
+
+    def add_data(self, file_path):
+
+        if not self.visualiser.data:
+            sg.popup_error(
+                "Load your first dataset before adding another."
+            )
+            return False
+
+        if self.visualiser.append_data(file_path):
+
+            self.refresh_table()
+            self.clear_chart()
+
+            return True
+
+        else:
+            sg.popup_error(
+                "Unable to add data. Check that the CSV columns match."
+            )
+
+            return False
+
+    def remove_selected_row(self, values):
+
+        selected = values.get(self.view.current_table_key, [])
+
+        if not selected:
+            sg.popup_error("Please select a row.")
+            return False
+
+        self.visualiser.remove_data(selected[0])
+
+        self.refresh_table()
+        self.clear_chart()
+
+        return True
+
+    def clear_data(self):
+
+        self.visualiser.clear_data()
+
+        self.refresh_table()
+        self.clear_chart()
+
+        self.view.window["-X-"].update(values=[])
+        self.view.window["-Y-"].update(values=[])
