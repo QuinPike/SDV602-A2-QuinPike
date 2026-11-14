@@ -1,7 +1,6 @@
 
 import argparse
 import sys
-import pytest
 
 from data.user_repository import UserRepository
 from data.message_repository import MessageRepository
@@ -30,7 +29,7 @@ class App:
         local_controller.run()
 
     def run_remote(self):
-
+        """Launch remote data mode, starting in login page"""
         login_controller = LoginController(self.user_repository)
         user = login_controller.run()
 
@@ -56,16 +55,11 @@ class App:
 
         remote_controller.run()
 
-    def run_headless(self, test=None):
-        """Run automated tests without opening the GUI."""
-
-        args = ["tests", "-v"]
-
-        if test and test != "all":
-            args.extend(["-k", test])
-
-        return pytest.main(args)
-
+    @staticmethod
+    def run_headless():
+        """Run all automated tests without opening the GUI."""
+        import pytest
+        return pytest.main(["tests", "-v"])
 
 def main():
     parser = argparse.ArgumentParser(
@@ -92,16 +86,10 @@ def main():
         help="Run automated tests without GUI"
     )
 
-    parser.add_argument(
-        "--test",
-        type=str,
-        help="Run a specific test group (headless only)"
-    )
-
     args = parser.parse_args()
 
-    if args.test and not args.headless:
-        parser.error("--test requires --headless")
+    if args.headless:
+        sys.exit(App.run_headless())
 
     app = App()
 
@@ -110,9 +98,6 @@ def main():
 
     elif args.remote:
         app.run_remote()
-
-    elif args.headless:
-        sys.exit(app.run_headless(args.test))
 
     else:
         app.run_gui()
