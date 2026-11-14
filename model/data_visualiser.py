@@ -1,7 +1,9 @@
 from model.file_manager import FileManager
 import matplotlib.pyplot as plt
 from operator import itemgetter
-
+from bson import ObjectId
+from data.database_manager import DatabaseManager
+import config
 
 class DataVisualiser:
 
@@ -94,3 +96,64 @@ class DataVisualiser:
 
     def save_data(self, file_name):
         return self.file_manager.save_csv(file_name, self.data)
+
+    # Loads data and files from the database
+    def load_data_from_records(self, data):
+        self.data = data
+
+    def plot_bar_chart(self, x_key, y_key, title="Bar Chart"):
+        import matplotlib.pyplot as plt
+
+        if not self.data:
+            raise ValueError("No data loaded.")
+
+        # Extract X and Y values
+        x_values = [row[x_key] for row in self.data]
+        y_values = [float(row[y_key]) for row in self.data]
+
+        # Create the chart
+        fig, ax = plt.subplots(figsize=(10, 6))
+
+        ax.bar(x_values, y_values)
+
+        # Configure chart appearance
+        ax.set_title(title)
+        ax.set_xlabel(x_key)
+        ax.set_ylabel(y_key)
+
+        # Rotate labels if necessary
+        plt.xticks(rotation=45, ha="right")
+
+        fig.tight_layout()
+
+        return fig
+
+    def get_by_id(self, dataset_id, session_id):
+
+        db = DatabaseManager.getInstance()
+
+        collection = db.get_collection(
+            config.DATASETS_COLLECTION
+        )
+
+        return collection.find_one({
+            "_id": ObjectId(dataset_id),
+            "session_id": session_id
+        })
+
+    def append_records(self, records):
+        if not records:
+            return False
+
+        if not self.data:
+            self.data = records.copy()
+            return True
+
+        existing_columns = self.get_columns()
+        new_columns = list(records[0].keys())
+
+        if existing_columns != new_columns:
+            return False
+
+        self.data.extend(records)
+        return True    

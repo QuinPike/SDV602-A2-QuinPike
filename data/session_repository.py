@@ -1,5 +1,6 @@
 from data.database_manager import DatabaseManager
 from model.session import Session
+from bson import ObjectId
 
 
 class SessionRepository:
@@ -25,8 +26,6 @@ class SessionRepository:
         ]
 
     def get_session(self, session_id):
-        from bson import ObjectId
-
         document = self.collection.find_one({
             "_id": ObjectId(session_id)
         })
@@ -37,8 +36,6 @@ class SessionRepository:
         return None
 
     def join_session(self, session_id, username):
-        from bson import ObjectId
-
         result = self.collection.update_one(
             {"_id": ObjectId(session_id)},
             {"$addToSet": {"members": username}}
@@ -56,3 +53,93 @@ class SessionRepository:
             Session.from_document(document)
             for document in documents
         ]
+
+    # Initialise shared-state fields for existing sessions.
+    def initialise_shared_state(self, session_id):
+
+        session_id = ObjectId(session_id)
+
+        self.collection.update_one(
+            {
+                "_id": session_id,
+                "version": {"$exists": False}
+            },
+            {
+                "$set": {
+                    "version": 0,
+                    "shared_data": [],
+                    "shared_columns": []
+                }
+            }
+        )
+
+        self.collection.update_one(
+            {
+                "_id": session_id,
+                "shared_data": {"$exists": False}
+            },
+            {"$set": {"shared_data": []}}
+        )
+
+        self.collection.update_one(
+            {
+                "_id": session_id,
+                "shared_columns": {"$exists": False}
+            },
+            {"$set": {"shared_columns": []}}
+        )
+
+    def get_shared_state(self, session_id):
+
+        session_id = ObjectId(session_id)
+
+        self.initialise_shared_state(session_id)
+
+        document = self.collection.find_one({
+            "_id": session_id
+        })
+
+        if not document:
+            return None
+
+        return {
+            "data": document.get("shared_data", []),
+            "columns": document.get("shared_columns", []),
+            "graph_settings": document.get("graph_settings"),
+            "version": document.get("version", 0)
+        }
+
+    def update_shared_state(self, session_id, state, expected_version):
+
+        session_id = self._get_object_id(session_id)
+
+        self.initialise_shared_state(session_id)
+
+        result = self.collection.update_one(
+            {
+                "_id": session_id,
+                "version": expected_version
+            },
+            {
+                "$set": {
+                    "shared_data": state["data"],
+                    "shared_columns": state["columns"],
+                    "graph_settings": state["graph_settings"]
+                },
+                "$inc": {
+                    "version": 1
+                }
+            }
+        )
+
+        if result.matched_count == 0:
+            return None
+
+        return expected_version + 1
+
+    def _get_object_id(self, session_id):
+
+        if isinstance(session_id, ObjectId):
+            return session_id
+
+        return ObjectId(session_id)
