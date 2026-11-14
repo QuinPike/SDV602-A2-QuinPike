@@ -13,6 +13,7 @@ class DummyView:
 
 @pytest.fixture
 def controller():
+    """Dummy controller for the fake view"""
     view = DummyView()
     controller = DESController(view)
 
@@ -25,6 +26,7 @@ def controller():
 
 
 def test_refresh_table(controller):
+    """Testing the refresh table to check if that works"""
     controller.refresh_table()
 
     assert controller.view.columns == ["Month", "Sales"]
@@ -35,4 +37,5 @@ def test_refresh_table(controller):
     ]
 
 def test_remove_selected_row(controller):
+    """Removing a selected row inside the SED"""
     controller.remove_selected_row = None

@@ -7,6 +7,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 class DummyView:
+    """The test view class. This creates a fake view"""
     def __init__(self):
         self.window = {}
         self.current_table_key = "-TABLE-"
@@ -22,7 +23,7 @@ class DummyView:
 
 @pytest.fixture
 def controller():
-
+    """Create a dummy remote controller for testing"""
     controller = RemoteController(
         username="test_user",
         session_id="test_session",
