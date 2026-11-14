@@ -2,7 +2,7 @@
 import pytest
 from controller.des_controller import DESController
 
-class TestView:
+class DummyView:
     """Simple view object for testing controller logic."""
 
     current_table_key = "-TABLE-"
@@ -13,7 +13,7 @@ class TestView:
 
 @pytest.fixture
 def controller():
-    view = TestView()
+    view = DummyView()
     controller = DESController(view)
 
     controller.visualiser.load_data_from_records([

@@ -10,9 +10,9 @@ from controller.remote_worker import remote_worker
 
 class RemoteController(DESController):
 
-    def __init__(self, username, session_id):
-
-        super().__init__(RemoteView())
+    def __init__(self, username, session_id, view=None):
+        """Inherits from DES View"""
+        super().__init__(view if view is not None else RemoteView())
 
         self.username = username
         self.session_id = session_id
@@ -53,11 +53,9 @@ class RemoteController(DESController):
                 if event == sg.WIN_CLOSED:
                     break
 
-                # Process responses from the worker.
                 for result in self.process_worker_results():
                     self.handle_worker_result(result)
 
-                # Periodically synchronise remote data.
                 if event == "__TIMEOUT__":
 
                     self.sync_session()
@@ -473,7 +471,6 @@ class RemoteController(DESController):
                         "Check that the dataset columns match."
                     )
 
-        # Shared session synchronisation.
         elif action == "SYNC_SESSION":
 
             self.apply_shared_state(
@@ -481,18 +478,15 @@ class RemoteController(DESController):
                 force=context.get("force", False)
             )
 
-        # Shared session publishing.
         elif action == "PUBLISH_SESSION":
 
             self.current_version = data
             self.last_graph_settings = context.get("graph_settings")
 
-        # Retrieve chat messages.
         elif action == "GET_MESSAGES":
 
             self.view.update_messages(data)
 
-        # Send chat message.
         elif action == "SEND_MESSAGE":
 
             self.view.clear_input()
