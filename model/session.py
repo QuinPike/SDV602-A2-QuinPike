@@ -7,9 +7,7 @@ class Session:
 
     COLLECTION = "sessions"
 
-    def __init__(self, name, creator, is_public=True,
-                 session_id=None, members=None, timestamp=None):
-
+    def __init__(self, name, creator, is_public=True, session_id=None, members=None, timestamp=None):
         self.name = name
         self.creator = creator
         self.is_public = is_public
@@ -18,6 +16,7 @@ class Session:
         self.timestamp = timestamp or datetime.now(timezone.utc)
 
     def save(self):
+        """This method will save the session to the databas, so users can reload this session again later on"""
         db = DatabaseManager.getInstance()
 
         document = {
@@ -34,9 +33,10 @@ class Session:
 
         return self
 
-    ## Factory Method to take the database record and convert it to the python object
+
     @classmethod
     def from_document(cls, document):
+        """A class method whuch returns the cls"""
         return cls(
             name=document["name"],
             creator=document["creator"],
