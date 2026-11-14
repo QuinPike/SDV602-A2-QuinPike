@@ -27,14 +27,11 @@ class DESController:
             fill="both",
             expand=1
         )
-
-        # Remove the previous toolbar widgets
         toolbar_canvas = self.view.window["-TOOLBAR-"].TKCanvas
 
         for widget in toolbar_canvas.winfo_children():
             widget.destroy()
 
-        # Create the navigation toolbar
         self.toolbar = NavigationToolbar2Tk(
             figure_canvas_agg,
             toolbar_canvas,
@@ -47,54 +44,16 @@ class DESController:
         return figure_canvas_agg
 
     def generate_chart(self, values):
-        x_key = values["-X-"]
-        y_key = values["-Y-"]
-        title = values["-TITLE-"]
-        description = values["-DESCRIPTION-"]
-        chart_type = values["-CHART-TYPE-"]
-
-        if not self.visualiser.data:
-            sg.popup_error("Please load data first.")
-            return
-
-        if not x_key or not y_key:
-            sg.popup_error("Please select both axes.")
-            return
 
         try:
-            # Generate the selected chart type
-            if chart_type == "Line":
-                fig = self.visualiser.plot_line_chart(
-                    x_key=x_key,
-                    y_key=y_key,
-                    title=title
-                )
-
-            elif chart_type == "Bar":
-                fig = self.visualiser.plot_bar_chart(
-                    x_key=x_key,
-                    y_key=y_key,
-                    title=title
-                )
-
-            else:
-                sg.popup_error("Please select a valid chart type.")
-                return
-
-            if fig is None:
-                sg.popup_error("Failed to generate chart.")
-                return
-
-            # Add the description
-            fig.text(
-                0.5, 0.02,
-                description,
-                ha="center",
-                fontsize=9,
-                wrap=True
+            fig = self.create_chart(
+                x_key=values["-X-"],
+                y_key=values["-Y-"],
+                title=values["-TITLE-"],
+                chart_type=values["-CHART-TYPE-"],
+                description=values["-DESCRIPTION-"]
             )
 
-            # Remove the previous chart
             if self.figure_agg is not None:
                 self.figure_agg.get_tk_widget().destroy()
 
@@ -103,7 +62,7 @@ class DESController:
             self.figure_agg = self._draw_figure(canvas_element, fig)
 
             self.generated = True
-            self.title = title
+            self.title = values["-TITLE-"]
 
         except (ValueError, KeyError) as e:
             sg.popup_error(f"Unable to generate chart: {e}")
@@ -168,24 +127,16 @@ class DESController:
 
     def add_data(self, file_path):
 
-        if not self.visualiser.data:
-            sg.popup_error(
-                "Load your first dataset before adding another."
-            )
-            return False
-
-        if self.visualiser.append_data(file_path):
+        try:
+            self.append_data(file_path)
 
             self.refresh_table()
             self.clear_chart()
 
             return True
 
-        else:
-            sg.popup_error(
-                "Unable to add data. Check that the CSV columns match."
-            )
-
+        except ValueError as e:
+            sg.popup_error(str(e))
             return False
 
     def remove_selected_row(self, values):
@@ -196,19 +147,104 @@ class DESController:
             sg.popup_error("Please select a row.")
             return False
 
-        self.visualiser.remove_data(selected[0])
+        try:
+            self.remove_data(selected[0])
 
-        self.refresh_table()
-        self.clear_chart()
+            self.refresh_table()
+            self.clear_chart()
 
-        return True
+            return True
+
+        except IndexError as e:
+            sg.popup_error(str(e))
+            return False
 
     def clear_data(self):
 
-        self.visualiser.clear_data()
+        self.clear_dataset()
 
         self.refresh_table()
         self.clear_chart()
 
         self.view.window["-X-"].update(values=[])
         self.view.window["-Y-"].update(values=[])
+
+    def create_chart(self, x_key, y_key, title, chart_type, description=""):
+
+        if not self.visualiser.data:
+            raise ValueError("No data loaded.")
+
+        if not x_key or not y_key:
+            raise ValueError("Both axes must be selected.")
+
+        if chart_type == "Line":
+            fig = self.visualiser.plot_line_chart(
+                x_key=x_key,
+                y_key=y_key,
+                title=title
+            )
+
+        elif chart_type == "Bar":
+            fig = self.visualiser.plot_bar_chart(
+                x_key=x_key,
+                y_key=y_key,
+                title=title
+            )
+
+        else:
+            raise ValueError("Invalid chart type.")
+
+        if fig is None:
+            raise ValueError("Failed to generate chart.")
+
+        fig.text(
+            0.5, 0.02,
+            description,
+            ha="center",
+            fontsize=9,
+            wrap=True
+        )
+
+        return fig
+
+    def save_chart_to_file(self, figure, file_path):
+
+        if figure is None:
+            raise ValueError("No chart available to save.")
+
+        if not file_path:
+            raise ValueError("No file path provided.")
+
+        figure.savefig(file_path)
+
+        return True
+
+    def append_data(self, file_path):
+
+        if not self.visualiser.data:
+            raise ValueError(
+                "Load your first dataset before adding another."
+            )
+
+        if not self.visualiser.append_data(file_path):
+            raise ValueError(
+                "Unable to add data. Check that the CSV columns match."
+            )
+
+        return True
+
+    def remove_data(self, index):
+
+        if not 0 <= index < len(self.visualiser.data):
+            raise IndexError("Invalid row selection.")
+
+        self.visualiser.remove_data(index)
+
+        return True
+
+
+    def clear_dataset(self):
+
+        self.visualiser.clear_data()
+
+        return True
