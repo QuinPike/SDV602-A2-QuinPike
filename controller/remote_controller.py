@@ -233,7 +233,6 @@ class RemoteController(DESController):
 
         self.worker_process.start()
 
-
     def send_worker_request(self, action, payload=None, context=None):
 
         self.next_request_id += 1

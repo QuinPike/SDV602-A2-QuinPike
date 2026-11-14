@@ -57,7 +57,7 @@ class SessionRepository:
     # Initialise shared-state fields for existing sessions.
     def initialise_shared_state(self, session_id):
 
-        session_id = ObjectId(session_id)
+        session_id = self._get_object_id(session_id)
 
         self.collection.update_one(
             {
@@ -91,7 +91,7 @@ class SessionRepository:
 
     def get_shared_state(self, session_id):
 
-        session_id = ObjectId(session_id)
+        session_id = self._get_object_id(session_id)
 
         self.initialise_shared_state(session_id)
 
