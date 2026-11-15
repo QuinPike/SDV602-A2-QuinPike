@@ -1,4 +1,6 @@
-<img width="409" height="277" alt="image" src="https://github.com/user-attachments/assets/a854d7ba-37c2-484a-8115-d3d88dc3652c" /># Development Log
+# Development Log
+
+<img width="409" height="277" alt="image" src="https://github.com/user-attachments/assets/a854d7ba-37c2-484a-8115-d3d88dc3652c" />
 
 ## 19-20 October - Creating Starter Files
 
@@ -25,11 +27,24 @@ The _draw_figure method inside the local controller is the block of code that I 
 <img width="557" height="235" alt="image" src="https://github.com/user-attachments/assets/e3e21fa3-0b18-4aff-96b9-e7d073bd41ce" /> <br>
 The block of code above shows the widget and canvas being created, allowing it to be used later on within FreeSimpleGUI. <br>
 
-
 <img width="409" height="277" alt="image" src="https://github.com/user-attachments/assets/046e8b3c-c86a-481f-974c-b690ec66fd7c" /> <br>
 
 I used Tkinter to generate the chart when the user generates a table and it gives the option for a toolbar. 
 
+## Headless testing 
+I created over 40 headless tests that all pass, checking the variety of the application to check if it works. <br>
+<img width="650" height="241" alt="image" src="https://github.com/user-attachments/assets/f01fd491-8d44-4822-b9e9-1478b1548b2e" />
 
 ## Remote Mode Development 
 I Have started making remote mode after completing local mode. I will not make the DES and graphing yet, and just create the multiple sessions and allowing multi-threading for allowing many people at once to view the chat and data. 
+
+## Issues had
+I did struggle with the multiprocessing as I accidentally made it GUI dependent, although I had fixed it and it did not take long to bring in multiprocessing.<br>
+I had not finished everything in time; the main functionality is working, although I do not have it where you can make a private session inside the GUI. All sessions made in the GUI are automatically public.<br>
+I ended up making a new file called remote_worker, which is what works with all the database operations and deals with the repositories and MongoDB connection.
+
+## Things that went well
+I actually ended up getting most of the functionality completed. 
+The core functionality works, the DES display shows up, it allows users to zoom,/pan. It allows users to login with their credentials, or make a new account, you can select sessions, upload data, and there is a chat in remote mode. 
+
+
