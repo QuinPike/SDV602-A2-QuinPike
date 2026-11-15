@@ -12,10 +12,12 @@ class SessionRepository:
         self.collection = self.db.get_collection(self.COLLECTION)
 
     def create_session(self, name, creator, is_public=True):
+        """Create a new session, with the name, creator, and if it is public or not"""
         session = Session(name, creator, is_public)
         return session.save()
 
     def all(self):
+        """Find all the sessions that are public"""
         documents = self.collection.find({
             "is_public": True
         })
@@ -26,6 +28,7 @@ class SessionRepository:
         ]
 
     def get_session(self, session_id):
+        """Find a session by its ID"""
         document = self.collection.find_one({
             "_id": ObjectId(session_id)
         })
@@ -36,6 +39,7 @@ class SessionRepository:
         return None
 
     def join_session(self, session_id, username):
+        """Join a session"""
         result = self.collection.update_one(
             {"_id": ObjectId(session_id)},
             {"$addToSet": {"members": username}}
@@ -44,6 +48,7 @@ class SessionRepository:
         return result.matched_count > 0
 
     def user_sessions(self, username):
+        """Get user sessions by their name"""
         documents = self.collection.find({
             "members": username,
             "is_public": False
@@ -54,10 +59,9 @@ class SessionRepository:
             for document in documents
         ]
 
-    # Initialise shared-state fields for existing sessions.
     def initialise_shared_state(self, session_id):
-
-        session_id = ObjectId(session_id)
+        """Sharing the state with the session, using it's ID. This allows updating a session"""
+        session_id = self._get_object_id(session_id)
 
         self.collection.update_one(
             {
@@ -90,8 +94,9 @@ class SessionRepository:
         )
 
     def get_shared_state(self, session_id):
+        """Finding the shared state of a session """
 
-        session_id = ObjectId(session_id)
+        session_id = self._get_object_id(session_id)
 
         self.initialise_shared_state(session_id)
 
@@ -110,6 +115,7 @@ class SessionRepository:
         }
 
     def update_shared_state(self, session_id, state, expected_version):
+        """Updating a shared state of a session"""
 
         session_id = self._get_object_id(session_id)
 
@@ -138,6 +144,7 @@ class SessionRepository:
         return expected_version + 1
 
     def _get_object_id(self, session_id):
+        """Finding an object by its ID"""
 
         if isinstance(session_id, ObjectId):
             return session_id

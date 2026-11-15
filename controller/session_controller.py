@@ -9,6 +9,7 @@ class SessionController:
         self.view = SessionView()
 
     def run(self):
+        """The run method for the controller. This controller controls the backend of the GUI for the sessions list screen"""
         while True:
             public_sessions = self.session_repository.all()
 

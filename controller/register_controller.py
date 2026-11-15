@@ -9,6 +9,7 @@ class RegisterController:
         self.view = RegisterView()
 
     def run(self):
+        """The method that runs the backend of the registration"""
         while True:
             event, values = self.view.read()
 

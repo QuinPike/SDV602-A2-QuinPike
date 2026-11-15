@@ -9,7 +9,7 @@ class LoginController:
         self.view = LoginView()
 
     def run(self):
-        
+        """runs the login page, displaying different pages depending on what the user inputs and presses."""
         while True:
             event, values = self.view.read()
 

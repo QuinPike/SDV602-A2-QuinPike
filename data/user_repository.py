@@ -8,30 +8,28 @@ class UserRepository:
     def __init__(self):
         self.db = DatabaseManager.getInstance()
 
-    def login(self, username, password):    
+    def login(self, username, password):
+        """Login the user, and if the username or password do not match, then it returns with "invalid password"."""    
         if not type(password) == str or not password:
             raise Exception("Invalid Password")
 
         try:
-            # get user by name
             stored_user = self.db.find_one_by_name(config.USER_COLLECTION, username)
             if not stored_user:
                 raise Exception("Failed to find user")
             
-            # compare pw
             password_encoded = password.encode("utf-8")
-            # print(stored_user["password"])
             result = bcrypt.checkpw(password_encoded, stored_user["password"])
 
             if not result:
                 raise Exception("Failed to login: Incorrect Password")
 
-            # create and return user
             return User(username, password)
         except Exception as e:
             print(f"Something went wrong: {e}")
     
     def create_user(self, username, password):
+        """Create the user. Also encrypt the password using bcrypt"""
         if self.db.find_one_by_name(config.USER_COLLECTION, username):
             raise Exception("Username already taken")
 

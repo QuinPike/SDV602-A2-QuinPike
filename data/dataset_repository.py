@@ -12,6 +12,7 @@ class DatasetRepository:
         self.db = DatabaseManager.getInstance()
 
     def create_dataset(self, filename, username, session_id, columns, data):
+        """Create a new dataset with its name, the username that it was uploaded by, the session ID that it is in, the columns, and it's data"""
 
         document = {
             "filename": filename,
@@ -24,6 +25,7 @@ class DatasetRepository:
         return self.db.insert_one(self.COLLECTION, document)
 
     def all_for_session(self, session_id):
+        """Find the datasets for the session"""
 
         collection = self.db.get_collection(self.COLLECTION)
 
@@ -34,6 +36,7 @@ class DatasetRepository:
         return list(datasets)
 
     def get_by_id(self, dataset_id, session_id):
+        """Find the dataset by its ID"""
 
         collection = self.db.get_collection(self.COLLECTION)
 
@@ -43,6 +46,7 @@ class DatasetRepository:
         })
 
     def update_dataset(self, dataset_id, session_id, columns, data):
+        """Update the dataset"""
 
         collection = self.db.get_collection(self.COLLECTION)
 

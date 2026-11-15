@@ -1,4 +1,3 @@
-
 import csv
 import os
 
@@ -9,10 +8,7 @@ from data.message_repository import MessageRepository
 
 def remote_worker(request_queue, result_queue, username, session_id):
     """
-    Background process for remote database operations.
-
-    The repositories and MongoDB connection are created inside
-    this process, not inherited from the GUI process.
+    Background process for remote database operations. The repositories and MongoDB connection are created inside this process, not inherited from the GUI process.
     """
 
     try:
@@ -51,7 +47,6 @@ def remote_worker(request_queue, result_queue, username, session_id):
 
         try:
 
-            # Retrieve datasets belonging to this session.
             if action == "REFRESH_DATASETS":
 
                 datasets = dataset_repository.all_for_session(
@@ -68,7 +63,6 @@ def remote_worker(request_queue, result_queue, username, session_id):
                     for dataset in datasets
                 ]
 
-            # Retrieve one dataset.
             elif action == "GET_DATASET":
 
                 dataset = dataset_repository.get_by_id(
@@ -86,7 +80,6 @@ def remote_worker(request_queue, result_queue, username, session_id):
                     "data": dataset["data"]
                 }
 
-            # Read and upload a CSV file.
             elif action == "UPLOAD_DATASET":
 
                 filepath = payload["filepath"]
@@ -123,14 +116,12 @@ def remote_worker(request_queue, result_queue, username, session_id):
                     "record_count": len(records)
                 }
 
-            # Retrieve the shared session state.
             elif action == "SYNC_SESSION":
 
                 data = session_repository.get_shared_state(
                     session_id
                 )
 
-            # Publish changes to the shared session.
             elif action == "PUBLISH_SESSION":
 
                 data = session_repository.update_shared_state(
@@ -145,7 +136,6 @@ def remote_worker(request_queue, result_queue, username, session_id):
                         "updated the session."
                     )
 
-            # Retrieve session chat messages.
             elif action == "GET_MESSAGES":
 
                 messages = message_repository.all(session_id)
@@ -158,7 +148,6 @@ def remote_worker(request_queue, result_queue, username, session_id):
                     for message in messages
                 ]
 
-            # Send a chat message.
             elif action == "SEND_MESSAGE":
 
                 message_repository.create_message(
@@ -169,7 +158,6 @@ def remote_worker(request_queue, result_queue, username, session_id):
 
                 data = True
 
-            # Stop the worker.
             elif action == "SHUTDOWN":
                 break
 
