@@ -34,7 +34,7 @@ class RemoteController(DESController):
 
 
     def run(self):
-
+        """Runs the GUI for the remote view, creates a new placeholder chart if there is none, and it has multiprocessing"""
         self.placeholder_chart()
         self.start_worker()
 
@@ -112,11 +112,12 @@ class RemoteController(DESController):
 
 
     def refresh_remote_datasets(self):
+        """Refreshes the datasets"""
 
         self.send_worker_request("REFRESH_DATASETS")
 
     def upload_dataset(self):
-
+        """Uploading a dataset to the database"""
         filepath = sg.popup_get_file(
             "Select a CSV file to upload",
             file_types=(("CSV Files", "*.csv"),),
@@ -133,7 +134,7 @@ class RemoteController(DESController):
 
 
     def load_remote_dataset(self, values):
-
+        """Loading a remote dataset that is on the database that is for that session"""
         selected = values.get("-REMOTE-DATASET-")
 
         if not selected:
@@ -151,7 +152,7 @@ class RemoteController(DESController):
         )
 
     def publish_session(self, values=None):
-
+        """Publishing the session so it saves and users can load the current changes"""
         data = self.visualiser.data
         columns = self.visualiser.get_columns()
 
@@ -184,14 +185,14 @@ class RemoteController(DESController):
         )
 
     def sync_session(self, force=False):
-
+        """Syncs the session so all users can automatically load the new data"""
         self.send_worker_request(
             "SYNC_SESSION",
             context={"force": force}
         )
 
     def add_remote_dataset(self, values):
-
+        """Adds a remote dataset to the table"""
         selected = values.get("-REMOTE-DATASET-")
 
         if not selected:
@@ -215,7 +216,7 @@ class RemoteController(DESController):
         )
 
     def start_worker(self):
-
+        """Starting the worker for queues. This is for multiprocessing"""
         self.request_queue = self.process_context.Queue()
         self.result_queue = self.process_context.Queue()
 
@@ -232,7 +233,7 @@ class RemoteController(DESController):
         self.worker_process.start()
 
     def send_worker_request(self, action, payload=None, context=None):
-
+        """Send worker request for multiprocessing"""
         self.next_request_id += 1
         request_id = self.next_request_id
 
@@ -248,7 +249,7 @@ class RemoteController(DESController):
 
 
     def process_worker_results(self):
-
+        """Gets the results of the worker requests"""
         results = []
 
         while True:
@@ -264,7 +265,7 @@ class RemoteController(DESController):
 
 
     def stop_worker(self):
-
+        """Stops the worker and multithreading"""
         if self.worker_process is None:
             return
 
@@ -286,7 +287,7 @@ class RemoteController(DESController):
         self.result_queue = None
 
     def update_remote_datasets(self, datasets):
-
+        """Update the remote datasets"""
         dataset_ids = {dataset["id"] for dataset in datasets}
 
         if dataset_ids == self.last_dataset_ids:
@@ -313,7 +314,7 @@ class RemoteController(DESController):
         )
 
     def apply_shared_state(self, state, force=False):
-
+        """Applying the shared state"""
         if not state:
             return
 
@@ -377,6 +378,7 @@ class RemoteController(DESController):
         self.current_version = version
 
     def handle_worker_result(self, result):
+        """Method to handle the worker result, which returns the result, mainly for torubleshooting. If there is an error, it displays the error"""
 
         request_id = result["request_id"]
         action = result["action"]
@@ -384,7 +386,6 @@ class RemoteController(DESController):
         context = self.pending_requests.pop(request_id, {})
 
         if action == "WORKER_READY":
-            print("Remote worker is ready.")
             return
 
         if action == "WORKER_ERROR":

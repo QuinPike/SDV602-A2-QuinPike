@@ -10,7 +10,7 @@ class LocalController(DESController):
 
 
     def run(self):
-
+        """This runs the local mode functionality. It allows the user to use the DES and data visualiser locally"""
         # Display the placeholder chart
         self.placeholder_chart()
 

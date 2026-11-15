@@ -8,10 +8,7 @@ from data.message_repository import MessageRepository
 
 def remote_worker(request_queue, result_queue, username, session_id):
     """
-    Background process for remote database operations.
-
-    The repositories and MongoDB connection are created inside
-    this process, not inherited from the GUI process.
+    Background process for remote database operations. The repositories and MongoDB connection are created inside this process, not inherited from the GUI process.
     """
 
     try:
@@ -50,7 +47,6 @@ def remote_worker(request_queue, result_queue, username, session_id):
 
         try:
 
-            # Retrieve datasets belonging to this session.
             if action == "REFRESH_DATASETS":
 
                 datasets = dataset_repository.all_for_session(
@@ -67,7 +63,6 @@ def remote_worker(request_queue, result_queue, username, session_id):
                     for dataset in datasets
                 ]
 
-            # Retrieve one dataset.
             elif action == "GET_DATASET":
 
                 dataset = dataset_repository.get_by_id(
@@ -85,7 +80,6 @@ def remote_worker(request_queue, result_queue, username, session_id):
                     "data": dataset["data"]
                 }
 
-            # Read and upload a CSV file.
             elif action == "UPLOAD_DATASET":
 
                 filepath = payload["filepath"]

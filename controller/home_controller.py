@@ -16,6 +16,8 @@ class HomeController:
         self.session_repository = SessionRepository()
 
     def run(self):
+        """Runs the Home Controller, allowing the buttons to have functionality and gives different results based on the users input. This only allows the user to select either 
+            Local Mode or Remote Mode"""
         while True:
             event, values = self.view.read()
 
